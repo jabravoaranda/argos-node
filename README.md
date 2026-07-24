@@ -42,6 +42,7 @@ Main modules:
 - `Logger`: serial boot banner and runtime log lines.
 - `WiFiManager`: WiFi connection and read-only network state accessors.
 - `Relays`: hardware-specific TCA9554 relay driver and relay state owner.
+- `Valves`: semantic electroválvula controller mapped to physical relays.
 - `Metrics`: transport-independent ESP32 runtime telemetry.
 - `NodeState`: transport-independent aggregation of node health, info, status, and metrics.
 - `HttpApi`: HTTP transport adapter and JSON serialization.
@@ -72,11 +73,12 @@ board_upload.maximum_size = 16777216
 board_build.partitions = default_16MB.csv
 ```
 
-Normal builds keep relay self-tests and serial development commands disabled:
+Current bench builds keep relay self-tests disabled and serial development
+commands enabled:
 
 ```ini
 -D ARGOS_ENABLE_RELAY_SELFTEST=0
--D ARGOS_ENABLE_SERIAL_DEV_COMMANDS=0
+-D ARGOS_ENABLE_SERIAL_DEV_COMMANDS=1
 ```
 
 ## Upload
@@ -136,11 +138,19 @@ Stable endpoints:
 - `GET /metrics`
 - `GET /outputs`
 - `PUT /outputs/relays/<id>`
+- `GET /valves`
+- `GET /valves/1`
+- `PUT /valves/1`
+- `POST /valves/1/open`
+- `POST /valves/1/close`
 
 See [docs/API.md](docs/API.md) for request/response formats, status codes, and
 examples.
 
 ## PowerShell Examples
+
+The node IP is assigned by the current network. Replace `192.168.1.138` in the
+examples with the IP address printed by the node after WiFi connects.
 
 Read outputs:
 
@@ -188,6 +198,63 @@ Helper script:
 .\tools\relay.ps1 1 off
 .\tools\relay.ps1 status
 ```
+
+## Electroválvula 1
+
+Electroválvula 1 is wired to relay CH1 on the Waveshare
+ESP32-S3-POE-ETH-8DI-8RO:
+
+- CH1 `COM` to `LOAD+`.
+- CH1 `NO` to the electroválvula red wire.
+- Electroválvula black wire to `LOAD-`.
+- Relay CH1 ON means electroválvula open.
+- Relay CH1 OFF means electroválvula closed.
+
+The semantic valve API lets ARGOS request valve operations without addressing
+the physical relay directly.
+
+Open electroválvula 1:
+
+```powershell
+Invoke-RestMethod `
+  -Method Put `
+  -Uri "http://192.168.1.138/valves/1" `
+  -ContentType "application/json" `
+  -Body '{"state":"open"}'
+```
+
+Read electroválvula 1:
+
+```powershell
+Invoke-RestMethod http://192.168.1.138/valves/1
+```
+
+Close electroválvula 1:
+
+```powershell
+Invoke-RestMethod `
+  -Method Put `
+  -Uri "http://192.168.1.138/valves/1" `
+  -ContentType "application/json" `
+  -Body '{"state":"closed"}'
+```
+
+Shortcut endpoints:
+
+```powershell
+Invoke-RestMethod -Method Post http://192.168.1.138/valves/1/open
+Invoke-RestMethod -Method Post http://192.168.1.138/valves/1/close
+```
+
+Manual validation checklist:
+
+1. Reboot the ESP32 and verify `GET /valves/1` returns `"state":"closed"`.
+2. Run `PUT /valves/1` with `{"state":"open"}` and verify CH1 activates.
+3. Run `GET /valves/1` and verify it returns `"state":"open"`.
+4. Run `PUT /valves/1` with `{"state":"closed"}` and verify CH1 deactivates.
+5. Run `PUT /valves/1` with `{"state":"bad"}` and verify HTTP 400.
+6. Run `GET /valves/2` and verify HTTP 404.
+7. Read `GET /outputs` before and after valve commands and verify relays 2..8 do not change.
 
 ## Relay Testing
 

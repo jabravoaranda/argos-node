@@ -3,6 +3,7 @@
 #include <Config.h>
 #include <Metrics.h>
 #include <Relays.h>
+#include <Valves.h>
 #include <WiFiManager.h>
 #include <stdint.h>
 
@@ -34,6 +35,7 @@ struct NodeInfo {
     const char* board = "";
     NetworkInfo network;
     CapabilityStatus relays;
+    CapabilityStatus valves;
     CapabilityStatus digitalInputs;
     CapabilityStatus flowmeters;
     CapabilityStatus analogInputs;
@@ -79,6 +81,7 @@ struct NodeStatus {
     uint32_t uptimeS = 0;
     WifiState network;
     RelayState relays[8] = {};
+    ValveStatus valves[Valves::kValveCount] = {};
     DigitalInputState digitalInputs[8] = {};
     FlowmeterState flowmeter;
     uint32_t freeHeapBytes = 0;
@@ -98,7 +101,7 @@ struct NodeMetrics {
 class NodeState {
 public:
     /** Attach state sources owned by hardware and service modules. */
-    void begin(const Config& config, const Relays& relays, const WiFiManager& wifi, const Metrics& metrics);
+    void begin(const Config& config, const Relays& relays, const Valves& valves, const WiFiManager& wifi, const Metrics& metrics);
 
     NodeHealth health() const;
     NodeInfo info() const;
@@ -114,6 +117,7 @@ private:
 
     const Config* config_ = nullptr;
     const Relays* relays_ = nullptr;
+    const Valves* valves_ = nullptr;
     const WiFiManager* wifi_ = nullptr;
     const Metrics* metrics_ = nullptr;
 };

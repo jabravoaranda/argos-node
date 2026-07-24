@@ -23,6 +23,10 @@ String JsonSerializer::info(const NodeInfo& info) {
     body += info.relays.available;
     body += F(",\"implemented\":");
     body += info.relays.implemented ? F("true") : F("false");
+    body += F("},\"valves\":{\"available\":");
+    body += info.valves.available;
+    body += F(",\"implemented\":");
+    body += info.valves.implemented ? F("true") : F("false");
     body += F("},\"digital_inputs\":{\"available\":");
     body += info.digitalInputs.available;
     body += F(",\"implemented\":");
@@ -70,7 +74,9 @@ String JsonSerializer::status(const NodeStatus& status) {
     body += status.network.mac;
     body += F("\"},\"outputs\":{\"relays\":");
     appendRelayStates(body, status.relays, 8);
-    body += F("},\"inputs\":{\"digital\":");
+    body += F("},\"valves\":");
+    appendValveStates(body, status.valves, Valves::kValveCount, false);
+    body += F(",\"inputs\":{\"digital\":");
     appendDigitalInputs(body, status.digitalInputs, 8);
     body += F("},\"flowmeter\":{\"implemented\":false,\"pulse_count\":null,\"flow_l_min\":null,\"total_l\":null},");
     body += F("\"system\":{\"free_heap_bytes\":");
@@ -119,6 +125,26 @@ String JsonSerializer::outputs(const NodeStatus& status) {
     return body;
 }
 
+String JsonSerializer::valves(const NodeStatus& status) {
+    String body = F("{\"valves\":");
+    appendValveStates(body, status.valves, Valves::kValveCount, true);
+    body += F("}");
+    return body;
+}
+
+String JsonSerializer::valve(const ValveStatus& valve) {
+    String body = F("{\"id\":");
+    body += valve.id;
+    body += F(",\"name\":\"");
+    body += valve.name;
+    body += F("\",\"relay_id\":");
+    body += valve.relayId;
+    body += F(",\"state\":\"");
+    body += valveStateText(valve.state);
+    body += F("\"}");
+    return body;
+}
+
 String JsonSerializer::relayCommand(uint8_t relay, bool state) {
     String body = F("{\"relay\":");
     body += relay;
@@ -143,6 +169,28 @@ void JsonSerializer::appendRelayStates(String& body, const RelayState* relays, u
     body += F("]");
 }
 
+void JsonSerializer::appendValveStates(String& body, const ValveStatus* valves, uint8_t count, bool includeRelayId) {
+    body += F("[");
+    for (uint8_t i = 0; i < count; ++i) {
+        if (i > 0) {
+            body += F(",");
+        }
+        body += F("{\"id\":");
+        body += valves[i].id;
+        body += F(",\"name\":\"");
+        body += valves[i].name;
+        body += F("\"");
+        if (includeRelayId) {
+            body += F(",\"relay_id\":");
+            body += valves[i].relayId;
+        }
+        body += F(",\"state\":\"");
+        body += valveStateText(valves[i].state);
+        body += F("\"}");
+    }
+    body += F("]");
+}
+
 void JsonSerializer::appendDigitalInputs(String& body, const DigitalInputState* inputs, uint8_t count) {
     body += F("[");
     for (uint8_t i = 0; i < count; ++i) {
@@ -162,6 +210,10 @@ void JsonSerializer::appendDigitalInputs(String& body, const DigitalInputState* 
         body += F("}");
     }
     body += F("]");
+}
+
+const __FlashStringHelper* JsonSerializer::valveStateText(ValveState state) {
+    return state == ValveState::Open ? F("open") : F("closed");
 }
 
 }  // namespace argos

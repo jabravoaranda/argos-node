@@ -15,11 +15,15 @@ public:
     static String status(const NodeStatus& status);
     static String metrics(const NodeMetrics& metrics);
     static String outputs(const NodeStatus& status);
+    static String valves(const NodeStatus& status);
+    static String valve(const ValveStatus& valve);
     static String relayCommand(uint8_t relay, bool state);
 
 private:
     static void appendRelayStates(String& body, const RelayState* relays, uint8_t count);
+    static void appendValveStates(String& body, const ValveStatus* valves, uint8_t count, bool includeRelayId);
     static void appendDigitalInputs(String& body, const DigitalInputState* inputs, uint8_t count);
+    static const __FlashStringHelper* valveStateText(ValveState state);
 };
 
 }  // namespace argos

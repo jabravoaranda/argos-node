@@ -4,9 +4,10 @@
 
 namespace argos {
 
-void NodeState::begin(const Config& config, const Relays& relays, const WiFiManager& wifi, const Metrics& metrics) {
+void NodeState::begin(const Config& config, const Relays& relays, const Valves& valves, const WiFiManager& wifi, const Metrics& metrics) {
     config_ = &config;
     relays_ = &relays;
+    valves_ = &valves;
     wifi_ = &wifi;
     metrics_ = &metrics;
 }
@@ -24,6 +25,8 @@ NodeInfo NodeState::info() const {
     wifi_->ipAddress(info.network.ip, sizeof(info.network.ip));
     info.relays.available = 8;
     info.relays.implemented = true;
+    info.valves.available = Valves::kValveCount;
+    info.valves.implemented = true;
     info.digitalInputs.available = 8;
     info.digitalInputs.implemented = false;
     info.flowmeters.available = 0;
@@ -51,6 +54,10 @@ NodeStatus NodeState::status() const {
     for (uint8_t relay = 1; relay <= kRelayCount; ++relay) {
         status.relays[relay - 1].id = relay;
         status.relays[relay - 1].state = relays_->isOn(relay);
+    }
+
+    for (uint8_t valve = 1; valve <= Valves::kValveCount; ++valve) {
+        valves_->status(valve, status.valves[valve - 1]);
     }
 
     for (uint8_t input = 1; input <= kDigitalInputCount; ++input) {

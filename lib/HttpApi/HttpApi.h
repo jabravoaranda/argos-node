@@ -2,6 +2,7 @@
 
 #include <Logger.h>
 #include <NodeState.h>
+#include <Valves.h>
 #include <WebServer.h>
 #include <ports/NodeCommandPort.h>
 #include <ports/NodeQueryPort.h>
@@ -18,7 +19,7 @@ namespace argos {
 class HttpApi {
 public:
     /** Start the HTTP API and register routes. */
-    void begin(const Logger& logger, const NodeState& nodeState, NodeCommandPort& commandPort, const NodeQueryPort& queryPort);
+    void begin(const Logger& logger, const NodeState& nodeState, Valves& valves, NodeCommandPort& commandPort, const NodeQueryPort& queryPort);
 
     /** Process pending HTTP clients without blocking the firmware loop. */
     void update();
@@ -33,17 +34,27 @@ private:
     void handleStatus();
     void handleMetrics();
     void handleOutputs();
+    void handleValves();
+    void handleValve();
+    void handleSetValve();
+    void handleOpenValve();
+    void handleCloseValve();
     void handleSetRelay();
     void handleNotFound();
     void sendJson(int statusCode, const String& body);
     void sendError(int statusCode, const __FlashStringHelper* error);
     bool parseRelayId(const String& text, uint8_t& relay) const;
     bool parseRelayStateBody(const String& body, bool& state, String& error) const;
+    bool parseValveId(const String& text, uint8_t& valveId) const;
+    bool parseValveStateBody(const String& body, ValveState& state, String& error) const;
+    String compactJson(const String& body) const;
     void logWriteClient(uint8_t relay, bool state);
+    void logValveWriteClient(uint8_t valveId, ValveState state);
 
     WebServer server_{kHttpPort};
     const Logger* logger_ = nullptr;
     const NodeState* nodeState_ = nullptr;
+    Valves* valves_ = nullptr;
     NodeCommandPort* commandPort_ = nullptr;
     const NodeQueryPort* queryPort_ = nullptr;
     bool started_ = false;

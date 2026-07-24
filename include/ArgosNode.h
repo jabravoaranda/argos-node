@@ -8,6 +8,7 @@
 #include <NetworkEthernet.h>
 #include <NodeState.h>
 #include <Relays.h>
+#include <Valves.h>
 #include <WiFiManager.h>
 #include <ports/NodeCommandPort.h>
 #include <ports/NodeQueryPort.h>
@@ -55,6 +56,7 @@ private:
     HttpApi httpApi_;
     NetworkEthernet ethernet_;
     Relays relays_;
+    Valves valves_;
     DigitalInputs digitalInputs_;
 #if defined(ARGOS_ENABLE_SERIAL_DEV_COMMANDS) && ARGOS_ENABLE_SERIAL_DEV_COMMANDS
     char serialCommandBuffer_[kSerialCommandBufferSize] = {};

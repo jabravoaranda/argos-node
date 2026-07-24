@@ -21,6 +21,11 @@ No authentication is implemented in `v0.1.0`.
 | GET | `/metrics` | Runtime telemetry for node health monitoring |
 | GET | `/outputs` | Current output states |
 | PUT | `/outputs/relays/<id>` | Set one relay output |
+| GET | `/valves` | Current configured valve states |
+| GET | `/valves/1` | Current state for electroválvula 1 |
+| PUT | `/valves/1` | Open or close electroválvula 1 |
+| POST | `/valves/1/open` | Open electroválvula 1 |
+| POST | `/valves/1/close` | Close electroválvula 1 |
 
 ## GET /health
 
@@ -134,6 +139,13 @@ Response `200`:
       }
     ]
   },
+  "valves": [
+    {
+      "id": 1,
+      "name": "electrovalvula_1",
+      "state": "closed"
+    }
+  ],
   "inputs": {
     "digital": [
       {
@@ -323,9 +335,151 @@ curl -X PUT http://192.168.1.138/outputs/relays/1 -H "Content-Type: application/
 curl -X PUT http://192.168.1.138/outputs/relays/1 -H "Content-Type: application/json" -d "{\"state\":false}"
 ```
 
+## Valve API
+
+Electroválvula 1 is physically wired to relay CH1. Relay CH1 ON means the
+valve is open; relay CH1 OFF means the valve is closed. The valve API reuses
+the relay driver through the semantic valve controller and does not write to
+the TCA9554 directly.
+
+The IP address is assigned by the active network. Replace `192.168.1.138` in
+the examples with the IP address printed by the node after WiFi connects.
+
+### GET /valves
+
+Returns configured valve states.
+
+Response `200`:
+
+```json
+{
+  "valves": [
+    {
+      "id": 1,
+      "name": "electrovalvula_1",
+      "relay_id": 1,
+      "state": "closed"
+    }
+  ]
+}
+```
+
+Example:
+
+```powershell
+Invoke-RestMethod http://192.168.1.138/valves
+```
+
+### GET /valves/1
+
+Returns electroválvula 1 state. The returned state reflects the relay state
+stored by the relay driver.
+
+Response `200`:
+
+```json
+{
+  "id": 1,
+  "name": "electrovalvula_1",
+  "relay_id": 1,
+  "state": "closed"
+}
+```
+
+Error responses:
+
+| Status | Cause | Example response |
+| --- | --- | --- |
+| 404 | Valve id is not configured | `{"error":"invalid_valve"}` |
+
+Example:
+
+```powershell
+Invoke-RestMethod http://192.168.1.138/valves/1
+```
+
+### PUT /valves/1
+
+Opens or closes electroválvula 1.
+
+Request body:
+
+```json
+{
+  "state": "open"
+}
+```
+
+or:
+
+```json
+{
+  "state": "closed"
+}
+```
+
+Response `200`:
+
+```json
+{
+  "id": 1,
+  "name": "electrovalvula_1",
+  "relay_id": 1,
+  "state": "open"
+}
+```
+
+Error responses:
+
+| Status | Cause | Example response |
+| --- | --- | --- |
+| 400 | Invalid JSON object | `{"error":"invalid_json"}` |
+| 400 | Missing `state` | `{"error":"missing_state"}` |
+| 400 | Non-string `state` | `{"error":"non_string_state"}` |
+| 400 | Unsupported `state` value | `{"error":"invalid_state"}` |
+| 404 | Valve id is not configured | `{"error":"invalid_valve"}` |
+| 500 | Valve command failed | `{"error":"valve_command_failed"}` |
+
+Open:
+
+```powershell
+Invoke-RestMethod `
+  -Method Put `
+  -Uri "http://192.168.1.138/valves/1" `
+  -ContentType "application/json" `
+  -Body '{"state":"open"}'
+```
+
+Close:
+
+```powershell
+Invoke-RestMethod `
+  -Method Put `
+  -Uri "http://192.168.1.138/valves/1" `
+  -ContentType "application/json" `
+  -Body '{"state":"closed"}'
+```
+
+### POST /valves/1/open
+
+Shortcut to open electroválvula 1.
+
+```powershell
+Invoke-RestMethod -Method Post http://192.168.1.138/valves/1/open
+```
+
+### POST /valves/1/close
+
+Shortcut to close electroválvula 1.
+
+```powershell
+Invoke-RestMethod -Method Post http://192.168.1.138/valves/1/close
+```
+
 ## Notes
 
 - Normal firmware boots with all relays OFF.
+- Valve initialization also forces configured valves closed.
 - No relay is energized automatically in normal builds.
 - Digital inputs are exposed as not implemented until the driver exists.
 - Flowmeter fields are exposed as not implemented until flowmeter support exists.

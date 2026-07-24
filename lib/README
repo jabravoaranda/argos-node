@@ -6,6 +6,7 @@ Private PlatformIO libraries for ARGOS Node.
 - `Logger`: serial logging.
 - `WiFiManager`: WiFi connection and network status accessors.
 - `Relays`: Waveshare TCA9554 relay driver.
+- `Valves`: semantic valve-to-relay controller.
 - `Metrics`: ESP32 runtime telemetry.
 - `NodeState`: transport-independent state aggregation.
 - `HttpApi`: HTTP transport adapter and JSON serialization.

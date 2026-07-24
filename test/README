@@ -4,3 +4,17 @@ Reserved for future PlatformIO tests.
 
 No automated tests are included in `v0.1.0`; validation is currently performed
 with firmware builds and physical checks on the Waveshare target hardware.
+
+## Manual valve API checks
+
+Use the current node IP printed after WiFi connects.
+
+1. Reboot the ESP32 and confirm `GET /valves/1` returns `"state":"closed"`.
+2. Send `PUT /valves/1` with `{"state":"open"}` and confirm relay CH1 activates.
+3. Send `GET /valves/1` and confirm `"state":"open"`.
+4. Send `PUT /valves/1` with `{"state":"closed"}` and confirm relay CH1 deactivates.
+5. Send `PUT /valves/1` with `{"state":"bad"}` and confirm HTTP 400.
+6. Send `PUT /valves/1` with `{}` and confirm HTTP 400 with `missing_state`.
+7. Send `GET /valves/2` and confirm HTTP 404.
+8. Confirm `GET /outputs` and `PUT /outputs/relays/1` still work.
+9. Confirm relays 2 through 8 do not change during valve 1 commands.

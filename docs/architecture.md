@@ -20,6 +20,7 @@ decision-making, scheduling, automation, or irrigation logic.
 - `Logger`: serial logger and boot banner.
 - `WiFiManager`: WiFi connection and read-only WiFi/network accessors.
 - `Relays`: TCA9554 relay driver and relay state owner.
+- `Valves`: semantic valve controller that maps configured valves to physical relays.
 - `Metrics`: transport-independent ESP32 runtime telemetry provider.
 - `NodeState`: typed aggregation of health, info, status, and metrics.
 - `HttpApi`: HTTP routes, request validation, and response transport.
@@ -51,9 +52,10 @@ Startup order:
 4. `Metrics`
 5. `Ethernet`
 6. `Relays`
-7. `NodeState`
-8. `HttpApi`
-9. `DigitalInputs`
+7. `Valves`
+8. `NodeState`
+9. `HttpApi`
+10. `DigitalInputs`
 
 Loop order:
 
@@ -64,7 +66,8 @@ Loop order:
 5. `HttpApi`
 6. `Ethernet`
 7. `Relays`
-8. `DigitalInputs`
+8. `Valves`
+9. `DigitalInputs`
 
 Normal firmware boots with all relays OFF. Automatic relay self-tests and
 serial development commands are behind compile-time flags and disabled by

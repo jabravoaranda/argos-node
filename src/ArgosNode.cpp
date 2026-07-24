@@ -11,8 +11,9 @@ void ArgosNode::begin() {
     metrics_.begin();
     ethernet_.begin(config_);
     relays_.begin(config_, logger_);
-    nodeState_.begin(config_, relays_, wifi_, metrics_);
-    httpApi_.begin(logger_, nodeState_, *this, *this);
+    valves_.begin(config_, relays_, logger_);
+    nodeState_.begin(config_, relays_, valves_, wifi_, metrics_);
+    httpApi_.begin(logger_, nodeState_, valves_, *this, *this);
     digitalInputs_.begin(config_);
 #if defined(ARGOS_ENABLE_RELAY_SELFTEST) && ARGOS_ENABLE_RELAY_SELFTEST
     runBootSelfTest();
@@ -29,6 +30,7 @@ void ArgosNode::update() {
     httpApi_.update();
     ethernet_.update();
     relays_.update();
+    valves_.update();
     digitalInputs_.update();
 
     delay(1);
@@ -82,8 +84,13 @@ void ArgosNode::handleSerialCommand(const char* command) {
         return;
     }
 
-    if (command[0] == 't' && command[1] >= '1' && command[1] <= '8' && command[2] == '\0') {
-        relays_.testRelay(static_cast<uint8_t>(command[1] - '0'));
+    if (command[0] == 'o' && command[1] >= '1' && command[1] <= '8' && command[2] == '\0') {
+        relays_.setRelay(static_cast<uint8_t>(command[1] - '0'), true);
+        return;
+    }
+
+    if (command[0] == 'c' && command[1] >= '1' && command[1] <= '8' && command[2] == '\0') {
+        relays_.setRelay(static_cast<uint8_t>(command[1] - '0'), false);
         return;
     }
 
@@ -97,7 +104,7 @@ void ArgosNode::handleSerialCommand(const char* command) {
         return;
     }
 
-    logger_.info(F("Unknown command. Use t1..t8, off, or wifi"));
+    logger_.info(F("Unknown command. Use o1..o8, c1..c8, off, or wifi"));
 }
 #endif
 
