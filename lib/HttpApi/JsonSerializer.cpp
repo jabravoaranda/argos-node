@@ -78,7 +78,15 @@ String JsonSerializer::status(const NodeStatus& status) {
     appendValveStates(body, status.valves, Valves::kValveCount, false);
     body += F(",\"inputs\":{\"digital\":");
     appendDigitalInputs(body, status.digitalInputs, 8);
-    body += F("},\"flowmeter\":{\"implemented\":false,\"pulse_count\":null,\"flow_l_min\":null,\"total_l\":null},");
+    body += F("},\"flowmeter\":{\"implemented\":");
+    body += status.flowmeter.implemented ? F("true") : F("false");
+    body += F(",\"pulse_count\":");
+    body += status.flowmeter.pulseCountAvailable ? String(status.flowmeter.pulseCount) : F("null");
+    body += F(",\"flow_l_min\":");
+    body += status.flowmeter.flowLMinAvailable ? String(status.flowmeter.flowLMin, 3) : F("null");
+    body += F(",\"total_l\":");
+    body += status.flowmeter.totalLAvailable ? String(status.flowmeter.totalL, 3) : F("null");
+    body += F("},");
     body += F("\"system\":{\"free_heap_bytes\":");
     body += status.freeHeapBytes;
     body += F(",\"minimum_free_heap_bytes\":");

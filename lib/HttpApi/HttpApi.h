@@ -43,6 +43,7 @@ private:
     void handleNotFound();
     void sendJson(int statusCode, const String& body);
     void sendError(int statusCode, const __FlashStringHelper* error);
+    bool configuredValveStatus(uint8_t valveId, ValveStatus& status);
     bool parseRelayId(const String& text, uint8_t& relay) const;
     bool parseRelayStateBody(const String& body, bool& state, String& error) const;
     bool parseValveId(const String& text, uint8_t& valveId) const;

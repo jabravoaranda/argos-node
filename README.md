@@ -26,7 +26,7 @@ Validated on target hardware:
 - W5500 Ethernet hardware present, firmware support pending
 - TCA9554 I2C I/O expander for relay control
 - 8 relay outputs
-- 8 isolated digital inputs, firmware support pending
+- 8 isolated digital inputs, DI8 firmware support implemented for YF-DN32 flowmeter pulses
 - RS485 hardware present, firmware support pending
 - USB, WiFi, PoE
 
@@ -46,7 +46,7 @@ Main modules:
 - `Metrics`: transport-independent ESP32 runtime telemetry.
 - `NodeState`: transport-independent aggregation of node health, info, status, and metrics.
 - `HttpApi`: HTTP transport adapter and JSON serialization.
-- `DigitalInputs`: placeholder module; inputs are not implemented yet.
+- `DigitalInputs`: isolated digital input driver; DI8 is implemented on GPIO11 as a YF-DN32 flowmeter pulse input.
 - `Ethernet`: placeholder module; W5500 support is not implemented yet.
 
 HTTP depends on application ports, not on the concrete `ArgosNode` type:
@@ -139,10 +139,10 @@ Stable endpoints:
 - `GET /outputs`
 - `PUT /outputs/relays/<id>`
 - `GET /valves`
-- `GET /valves/1`
-- `PUT /valves/1`
-- `POST /valves/1/open`
-- `POST /valves/1/close`
+- `GET /valves/8`
+- `PUT /valves/8`
+- `POST /valves/8/open`
+- `POST /valves/8/close`
 
 See [docs/API.md](docs/API.md) for request/response formats, status codes, and
 examples.
@@ -171,21 +171,21 @@ Display all relay states:
     Format-Table id, state
 ```
 
-Turn relay 1 ON:
+Turn relay 8 ON:
 
 ```powershell
 Invoke-RestMethod `
-  -Uri http://192.168.1.138/outputs/relays/1 `
+  -Uri http://192.168.1.138/outputs/relays/8 `
   -Method Put `
   -ContentType "application/json" `
   -Body '{"state":true}'
 ```
 
-Turn relay 1 OFF:
+Turn relay 8 OFF:
 
 ```powershell
 Invoke-RestMethod `
-  -Uri http://192.168.1.138/outputs/relays/1 `
+  -Uri http://192.168.1.138/outputs/relays/8 `
   -Method Put `
   -ContentType "application/json" `
   -Body '{"state":false}'
@@ -194,47 +194,47 @@ Invoke-RestMethod `
 Helper script:
 
 ```powershell
-.\tools\relay.ps1 1 on
-.\tools\relay.ps1 1 off
+.\tools\relay.ps1 8 on
+.\tools\relay.ps1 8 off
 .\tools\relay.ps1 status
 ```
 
-## Electroválvula 1
+## Electroválvula 8
 
-Electroválvula 1 is wired to relay CH1 on the Waveshare
+Electroválvula 8 is wired to relay CH8 on the Waveshare
 ESP32-S3-POE-ETH-8DI-8RO:
 
-- CH1 `COM` to `LOAD+`.
-- CH1 `NO` to the electroválvula red wire.
+- CH8 `COM` to `LOAD+`.
+- CH8 `NO` to the electroválvula red wire.
 - Electroválvula black wire to `LOAD-`.
-- Relay CH1 ON means electroválvula open.
-- Relay CH1 OFF means electroválvula closed.
+- Relay CH8 ON means electroválvula open.
+- Relay CH8 OFF means electroválvula closed.
 
 The semantic valve API lets ARGOS request valve operations without addressing
 the physical relay directly.
 
-Open electroválvula 1:
+Open electroválvula 8:
 
 ```powershell
 Invoke-RestMethod `
   -Method Put `
-  -Uri "http://192.168.1.138/valves/1" `
+  -Uri "http://192.168.1.138/valves/8" `
   -ContentType "application/json" `
   -Body '{"state":"open"}'
 ```
 
-Read electroválvula 1:
+Read electroválvula 8:
 
 ```powershell
-Invoke-RestMethod http://192.168.1.138/valves/1
+Invoke-RestMethod http://192.168.1.138/valves/8
 ```
 
-Close electroválvula 1:
+Close electroválvula 8:
 
 ```powershell
 Invoke-RestMethod `
   -Method Put `
-  -Uri "http://192.168.1.138/valves/1" `
+  -Uri "http://192.168.1.138/valves/8" `
   -ContentType "application/json" `
   -Body '{"state":"closed"}'
 ```
@@ -242,19 +242,19 @@ Invoke-RestMethod `
 Shortcut endpoints:
 
 ```powershell
-Invoke-RestMethod -Method Post http://192.168.1.138/valves/1/open
-Invoke-RestMethod -Method Post http://192.168.1.138/valves/1/close
+Invoke-RestMethod -Method Post http://192.168.1.138/valves/8/open
+Invoke-RestMethod -Method Post http://192.168.1.138/valves/8/close
 ```
 
 Manual validation checklist:
 
-1. Reboot the ESP32 and verify `GET /valves/1` returns `"state":"closed"`.
-2. Run `PUT /valves/1` with `{"state":"open"}` and verify CH1 activates.
-3. Run `GET /valves/1` and verify it returns `"state":"open"`.
-4. Run `PUT /valves/1` with `{"state":"closed"}` and verify CH1 deactivates.
-5. Run `PUT /valves/1` with `{"state":"bad"}` and verify HTTP 400.
-6. Run `GET /valves/2` and verify HTTP 404.
-7. Read `GET /outputs` before and after valve commands and verify relays 2..8 do not change.
+1. Reboot the ESP32 and verify `GET /valves/8` returns `"state":"closed"`.
+2. Run `PUT /valves/8` with `{"state":"open"}` and verify CH8 activates.
+3. Run `GET /valves/8` and verify it returns `"state":"open"`.
+4. Run `PUT /valves/8` with `{"state":"closed"}` and verify CH8 deactivates.
+5. Run `PUT /valves/8` with `{"state":"bad"}` and verify HTTP 400.
+6. Run `GET /valves/1` and verify HTTP 404.
+7. Read `GET /outputs` before and after valve commands and verify relays 1..7 do not change.
 
 ## Relay Testing
 

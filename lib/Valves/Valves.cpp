@@ -4,6 +4,8 @@
 
 namespace argos {
 
+constexpr Valves::ValveConfig Valves::kValveConfigs[Valves::kValveCount];
+
 void Valves::begin(const Config& config, Relays& relays, const Logger& logger) {
     (void)config;
     relays_ = &relays;
@@ -42,19 +44,19 @@ bool Valves::close(uint8_t valveId) {
 
 bool Valves::status(uint8_t valveId, ValveStatus& status) const {
     const ValveConfig* valve = configFor(valveId);
-    if (valve == nullptr || relays_ == nullptr) {
+    if (valve == nullptr) {
         return false;
     }
 
-    status.id = valve->id;
-    status.name = valve->name;
-    status.relayId = valve->relayId;
-    status.state = stateFromRelay(relays_->isOn(valve->relayId));
-    return true;
+    return statusForConfig(*valve, status);
 }
 
-uint8_t Valves::count() const {
-    return kValveCount;
+bool Valves::statusByIndex(uint8_t index, ValveStatus& status) const {
+    if (index >= kValveCount) {
+        return false;
+    }
+
+    return statusForConfig(kValveConfigs[index], status);
 }
 
 const Valves::ValveConfig* Valves::configFor(uint8_t valveId) const {
@@ -64,6 +66,18 @@ const Valves::ValveConfig* Valves::configFor(uint8_t valveId) const {
         }
     }
     return nullptr;
+}
+
+bool Valves::statusForConfig(const ValveConfig& valve, ValveStatus& status) const {
+    if (relays_ == nullptr) {
+        return false;
+    }
+
+    status.id = valve.id;
+    status.name = valve.name;
+    status.relayId = valve.relayId;
+    status.state = stateFromRelay(relays_->isOn(valve.relayId));
+    return true;
 }
 
 ValveState Valves::stateFromRelay(bool relayState) {

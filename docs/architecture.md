@@ -24,7 +24,7 @@ decision-making, scheduling, automation, or irrigation logic.
 - `Metrics`: transport-independent ESP32 runtime telemetry provider.
 - `NodeState`: typed aggregation of health, info, status, and metrics.
 - `HttpApi`: HTTP routes, request validation, and response transport.
-- `DigitalInputs`: placeholder module; input reading is not implemented yet.
+- `DigitalInputs`: isolated digital input driver; DI8 is implemented on GPIO11 as a YF-DN32 flowmeter pulse input.
 - `Ethernet`: placeholder module; W5500 support is not implemented yet.
 
 Each module exposes `begin()` and, where useful, `update()`.
@@ -53,9 +53,9 @@ Startup order:
 5. `Ethernet`
 6. `Relays`
 7. `Valves`
-8. `NodeState`
-9. `HttpApi`
-10. `DigitalInputs`
+8. `DigitalInputs`
+9. `NodeState`
+10. `HttpApi`
 
 Loop order:
 

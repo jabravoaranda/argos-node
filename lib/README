@@ -10,5 +10,5 @@ Private PlatformIO libraries for ARGOS Node.
 - `Metrics`: ESP32 runtime telemetry.
 - `NodeState`: transport-independent state aggregation.
 - `HttpApi`: HTTP transport adapter and JSON serialization.
-- `DigitalInputs`: placeholder for future digital input driver.
+- `DigitalInputs`: isolated digital input driver; DI8 is implemented on GPIO11 as a YF-DN32 flowmeter pulse input.
 - `Ethernet`: placeholder for future W5500 Ethernet driver.

@@ -61,11 +61,6 @@ void HttpApi::registerReadRoutes() {
     server_.on(UriBraces("/valves/{}"), HTTP_GET, [this]() { handleValve(); });
     logger_->info(F("HTTP API endpoint registered: GET /valves/{id}"));
 
-    server_.on(UriBraces("/valves/{}/open"), HTTP_GET, [this]() { handleOpenValve(); });
-    logger_->info(F("HTTP API endpoint registered: GET /valves/{id}/open"));
-
-    server_.on(UriBraces("/valves/{}/close"), HTTP_GET, [this]() { handleCloseValve(); });
-    logger_->info(F("HTTP API endpoint registered: GET /valves/{id}/close"));
 }
 
 void HttpApi::registerWriteRoutes() {
@@ -114,7 +109,7 @@ void HttpApi::handleValve() {
     }
 
     ValveStatus status;
-    if (!valves_->status(valveId, status)) {
+    if (!configuredValveStatus(valveId, status)) {
         sendError(404, F("invalid_valve"));
         return;
     }
@@ -125,6 +120,12 @@ void HttpApi::handleValve() {
 void HttpApi::handleSetValve() {
     uint8_t valveId = 0;
     if (!parseValveId(server_.pathArg(0), valveId)) {
+        sendError(404, F("invalid_valve"));
+        return;
+    }
+
+    ValveStatus status;
+    if (!configuredValveStatus(valveId, status)) {
         sendError(404, F("invalid_valve"));
         return;
     }
@@ -142,7 +143,6 @@ void HttpApi::handleSetValve() {
         return;
     }
 
-    ValveStatus status;
     if (!valves_->status(valveId, status)) {
         sendError(500, F("valve_status_unavailable"));
         return;
@@ -157,13 +157,18 @@ void HttpApi::handleOpenValve() {
         return;
     }
 
+    ValveStatus status;
+    if (!configuredValveStatus(valveId, status)) {
+        sendError(404, F("invalid_valve"));
+        return;
+    }
+
     logValveWriteClient(valveId, ValveState::Open);
     if (!valves_->open(valveId)) {
         sendError(500, F("valve_command_failed"));
         return;
     }
 
-    ValveStatus status;
     if (!valves_->status(valveId, status)) {
         sendError(500, F("valve_status_unavailable"));
         return;
@@ -178,13 +183,18 @@ void HttpApi::handleCloseValve() {
         return;
     }
 
+    ValveStatus status;
+    if (!configuredValveStatus(valveId, status)) {
+        sendError(404, F("invalid_valve"));
+        return;
+    }
+
     logValveWriteClient(valveId, ValveState::Closed);
     if (!valves_->close(valveId)) {
         sendError(500, F("valve_command_failed"));
         return;
     }
 
-    ValveStatus status;
     if (!valves_->status(valveId, status)) {
         sendError(500, F("valve_status_unavailable"));
         return;
@@ -233,6 +243,10 @@ void HttpApi::sendError(int statusCode, const __FlashStringHelper* error) {
     sendJson(statusCode, body);
 }
 
+bool HttpApi::configuredValveStatus(uint8_t valveId, ValveStatus& status) {
+    return valves_ != nullptr && valves_->status(valveId, status);
+}
+
 bool HttpApi::parseRelayId(const String& text, uint8_t& relay) const {
     if (text.length() != 1 || text[0] < '1' || text[0] > '8') {
         return false;
@@ -273,12 +287,12 @@ bool HttpApi::parseRelayStateBody(const String& body, bool& state, String& error
 }
 
 bool HttpApi::parseValveId(const String& text, uint8_t& valveId) const {
-    if (text.length() != 1 || text[0] < '1' || text[0] > '9') {
+    if (text.length() != 1 || text[0] < '1' || text[0] > '8') {
         return false;
     }
 
     valveId = static_cast<uint8_t>(text[0] - '0');
-    return valveId >= 1 && valveId <= Valves::kValveCount;
+    return valveId >= 1 && valveId <= Valves::kMaxValveId;
 }
 
 bool HttpApi::parseValveStateBody(const String& body, ValveState& state, String& error) const {

@@ -12,9 +12,9 @@ void ArgosNode::begin() {
     ethernet_.begin(config_);
     relays_.begin(config_, logger_);
     valves_.begin(config_, relays_, logger_);
-    nodeState_.begin(config_, relays_, valves_, wifi_, metrics_);
-    httpApi_.begin(logger_, nodeState_, valves_, *this, *this);
     digitalInputs_.begin(config_);
+    nodeState_.begin(config_, relays_, valves_, digitalInputs_, wifi_, metrics_);
+    httpApi_.begin(logger_, nodeState_, valves_, *this, *this);
 #if defined(ARGOS_ENABLE_RELAY_SELFTEST) && ARGOS_ENABLE_RELAY_SELFTEST
     runBootSelfTest();
 #endif

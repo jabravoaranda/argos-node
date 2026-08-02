@@ -9,12 +9,12 @@ with firmware builds and physical checks on the Waveshare target hardware.
 
 Use the current node IP printed after WiFi connects.
 
-1. Reboot the ESP32 and confirm `GET /valves/1` returns `"state":"closed"`.
-2. Send `PUT /valves/1` with `{"state":"open"}` and confirm relay CH1 activates.
-3. Send `GET /valves/1` and confirm `"state":"open"`.
-4. Send `PUT /valves/1` with `{"state":"closed"}` and confirm relay CH1 deactivates.
-5. Send `PUT /valves/1` with `{"state":"bad"}` and confirm HTTP 400.
-6. Send `PUT /valves/1` with `{}` and confirm HTTP 400 with `missing_state`.
-7. Send `GET /valves/2` and confirm HTTP 404.
+1. Reboot the ESP32 and confirm `GET /valves/8` returns `"state":"closed"`.
+2. Send `PUT /valves/8` with `{"state":"open"}` and confirm relay CH8 activates.
+3. Send `GET /valves/8` and confirm `"state":"open"`.
+4. Send `PUT /valves/8` with `{"state":"closed"}` and confirm relay CH8 deactivates.
+5. Send `PUT /valves/8` with `{"state":"bad"}` and confirm HTTP 400.
+6. Send `PUT /valves/8` with `{}` and confirm HTTP 400 with `missing_state`.
+7. Send `GET /valves/1` and confirm HTTP 404.
 8. Confirm `GET /outputs` and `PUT /outputs/relays/1` still work.
-9. Confirm relays 2 through 8 do not change during valve 1 commands.
+9. Confirm relays 1 through 7 do not change during valve 8 commands.

@@ -22,10 +22,10 @@ No authentication is implemented in `v0.1.0`.
 | GET | `/outputs` | Current output states |
 | PUT | `/outputs/relays/<id>` | Set one relay output |
 | GET | `/valves` | Current configured valve states |
-| GET | `/valves/1` | Current state for electroválvula 1 |
-| PUT | `/valves/1` | Open or close electroválvula 1 |
-| POST | `/valves/1/open` | Open electroválvula 1 |
-| POST | `/valves/1/close` | Close electroválvula 1 |
+| GET | `/valves/8` | Current state for electroválvula 8 |
+| PUT | `/valves/8` | Open or close electroválvula 8 |
+| POST | `/valves/8/open` | Open electroválvula 8 |
+| POST | `/valves/8/close` | Close electroválvula 8 |
 
 ## GET /health
 
@@ -74,11 +74,11 @@ Response `200`:
     },
     "digital_inputs": {
       "available": 8,
-      "implemented": false
+      "implemented": true
     },
     "flowmeters": {
-      "available": 0,
-      "implemented": false
+      "available": 1,
+      "implemented": true
     },
     "analog_inputs": {
       "available": 0,
@@ -112,8 +112,9 @@ curl http://192.168.1.138/info
 
 ## GET /status
 
-Returns current operational state. This endpoint includes relay states and
-explicit placeholders for inputs and flowmeter data that are not implemented.
+Returns current operational state. This endpoint includes relay states, DI8
+state, YF-DN32 flowmeter data from DI8, and explicit placeholders for inputs
+that are not implemented.
 
 Response `200`:
 
@@ -141,8 +142,8 @@ Response `200`:
   },
   "valves": [
     {
-      "id": 1,
-      "name": "electrovalvula_1",
+      "id": 8,
+      "name": "electrovalvula_8",
       "state": "closed"
     }
   ],
@@ -152,14 +153,19 @@ Response `200`:
         "id": 1,
         "state": null,
         "implemented": false
+      },
+      {
+        "id": 8,
+        "state": true,
+        "implemented": true
       }
     ]
   },
   "flowmeter": {
-    "implemented": false,
-    "pulse_count": null,
-    "flow_l_min": null,
-    "total_l": null
+    "implemented": true,
+    "pulse_count": 27,
+    "flow_l_min": 60.0,
+    "total_l": 1.0
   },
   "system": {
     "free_heap_bytes": 0,
@@ -337,8 +343,8 @@ curl -X PUT http://192.168.1.138/outputs/relays/1 -H "Content-Type: application/
 
 ## Valve API
 
-Electroválvula 1 is physically wired to relay CH1. Relay CH1 ON means the
-valve is open; relay CH1 OFF means the valve is closed. The valve API reuses
+Electroválvula 8 is physically wired to relay CH8. Relay CH8 ON means the
+valve is open; relay CH8 OFF means the valve is closed. The valve API reuses
 the relay driver through the semantic valve controller and does not write to
 the TCA9554 directly.
 
@@ -355,9 +361,9 @@ Response `200`:
 {
   "valves": [
     {
-      "id": 1,
-      "name": "electrovalvula_1",
-      "relay_id": 1,
+      "id": 8,
+      "name": "electrovalvula_8",
+      "relay_id": 8,
       "state": "closed"
     }
   ]
@@ -370,18 +376,18 @@ Example:
 Invoke-RestMethod http://192.168.1.138/valves
 ```
 
-### GET /valves/1
+### GET /valves/8
 
-Returns electroválvula 1 state. The returned state reflects the relay state
+Returns electroválvula 8 state. The returned state reflects the relay state
 stored by the relay driver.
 
 Response `200`:
 
 ```json
 {
-  "id": 1,
-  "name": "electrovalvula_1",
-  "relay_id": 1,
+  "id": 8,
+  "name": "electrovalvula_8",
+  "relay_id": 8,
   "state": "closed"
 }
 ```
@@ -395,12 +401,12 @@ Error responses:
 Example:
 
 ```powershell
-Invoke-RestMethod http://192.168.1.138/valves/1
+Invoke-RestMethod http://192.168.1.138/valves/8
 ```
 
-### PUT /valves/1
+### PUT /valves/8
 
-Opens or closes electroválvula 1.
+Opens or closes electroválvula 8.
 
 Request body:
 
@@ -422,9 +428,9 @@ Response `200`:
 
 ```json
 {
-  "id": 1,
-  "name": "electrovalvula_1",
-  "relay_id": 1,
+  "id": 8,
+  "name": "electrovalvula_8",
+  "relay_id": 8,
   "state": "open"
 }
 ```
@@ -445,7 +451,7 @@ Open:
 ```powershell
 Invoke-RestMethod `
   -Method Put `
-  -Uri "http://192.168.1.138/valves/1" `
+  -Uri "http://192.168.1.138/valves/8" `
   -ContentType "application/json" `
   -Body '{"state":"open"}'
 ```
@@ -455,25 +461,25 @@ Close:
 ```powershell
 Invoke-RestMethod `
   -Method Put `
-  -Uri "http://192.168.1.138/valves/1" `
+  -Uri "http://192.168.1.138/valves/8" `
   -ContentType "application/json" `
   -Body '{"state":"closed"}'
 ```
 
-### POST /valves/1/open
+### POST /valves/8/open
 
-Shortcut to open electroválvula 1.
+Shortcut to open electroválvula 8.
 
 ```powershell
-Invoke-RestMethod -Method Post http://192.168.1.138/valves/1/open
+Invoke-RestMethod -Method Post http://192.168.1.138/valves/8/open
 ```
 
-### POST /valves/1/close
+### POST /valves/8/close
 
-Shortcut to close electroválvula 1.
+Shortcut to close electroválvula 8.
 
 ```powershell
-Invoke-RestMethod -Method Post http://192.168.1.138/valves/1/close
+Invoke-RestMethod -Method Post http://192.168.1.138/valves/8/close
 ```
 
 ## Notes
@@ -481,6 +487,6 @@ Invoke-RestMethod -Method Post http://192.168.1.138/valves/1/close
 - Normal firmware boots with all relays OFF.
 - Valve initialization also forces configured valves closed.
 - No relay is energized automatically in normal builds.
-- Digital inputs are exposed as not implemented until the driver exists.
-- Flowmeter fields are exposed as not implemented until flowmeter support exists.
+- DI8 is exposed as the implemented digital input for the flowmeter.
+- Flowmeter fields are calculated from DI8 using the YF-DN32 formula `F = 0.45 x Q`.
 - WiFi SSID may appear in `/status`; WiFi password is never returned.

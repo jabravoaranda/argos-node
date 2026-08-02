@@ -24,14 +24,15 @@ struct ValveStatus {
 /**
  * Semantic valve controller.
  *
- * Valve 1 is physically wired to relay CH1:
+ * Valve 8 is physically wired to relay CH8:
  * relay ON means valve open, relay OFF means valve closed.
  */
 class Valves {
 public:
     static constexpr uint8_t kValveCount = 1;
-    static constexpr uint8_t kValve1Id = 1;
-    static constexpr uint8_t kValve1RelayId = 1;
+    static constexpr uint8_t kMaxValveId = 8;
+    static constexpr uint8_t kValve8Id = 8;
+    static constexpr uint8_t kValve8RelayId = 8;
 
     /** Attach the relay driver and force configured valves to their safe closed state. */
     void begin(const Config& config, Relays& relays, const Logger& logger);
@@ -43,7 +44,7 @@ public:
     bool open(uint8_t valveId);
     bool close(uint8_t valveId);
     bool status(uint8_t valveId, ValveStatus& status) const;
-    uint8_t count() const;
+    bool statusByIndex(uint8_t index, ValveStatus& status) const;
 
 private:
     struct ValveConfig {
@@ -53,10 +54,11 @@ private:
     };
 
     static constexpr ValveConfig kValveConfigs[kValveCount] = {
-        {kValve1Id, "electrovalvula_1", kValve1RelayId},
+        {kValve8Id, "electrovalvula_8", kValve8RelayId},
     };
 
     const ValveConfig* configFor(uint8_t valveId) const;
+    bool statusForConfig(const ValveConfig& valve, ValveStatus& status) const;
     static ValveState stateFromRelay(bool relayState);
 
     Relays* relays_ = nullptr;

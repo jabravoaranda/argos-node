@@ -4,10 +4,11 @@
 
 namespace argos {
 
-void NodeState::begin(const Config& config, const Relays& relays, const Valves& valves, const WiFiManager& wifi, const Metrics& metrics) {
+void NodeState::begin(const Config& config, const Relays& relays, const Valves& valves, const DigitalInputs& digitalInputs, const WiFiManager& wifi, const Metrics& metrics) {
     config_ = &config;
     relays_ = &relays;
     valves_ = &valves;
+    digitalInputs_ = &digitalInputs;
     wifi_ = &wifi;
     metrics_ = &metrics;
 }
@@ -28,9 +29,9 @@ NodeInfo NodeState::info() const {
     info.valves.available = Valves::kValveCount;
     info.valves.implemented = true;
     info.digitalInputs.available = 8;
-    info.digitalInputs.implemented = false;
-    info.flowmeters.available = 0;
-    info.flowmeters.implemented = false;
+    info.digitalInputs.implemented = true;
+    info.flowmeters.available = 1;
+    info.flowmeters.implemented = true;
     info.analogInputs.available = 0;
     info.analogInputs.implemented = false;
     info.wifi.available = true;
@@ -56,15 +57,24 @@ NodeStatus NodeState::status() const {
         status.relays[relay - 1].state = relays_->isOn(relay);
     }
 
-    for (uint8_t valve = 1; valve <= Valves::kValveCount; ++valve) {
-        valves_->status(valve, status.valves[valve - 1]);
+    for (uint8_t valveIndex = 0; valveIndex < Valves::kValveCount; ++valveIndex) {
+        valves_->statusByIndex(valveIndex, status.valves[valveIndex]);
     }
 
     for (uint8_t input = 1; input <= kDigitalInputCount; ++input) {
         status.digitalInputs[input - 1].id = input;
-        status.digitalInputs[input - 1].implemented = false;
-        status.digitalInputs[input - 1].stateAvailable = false;
+        status.digitalInputs[input - 1].implemented = digitalInputs_->isImplemented(input);
+        status.digitalInputs[input - 1].stateAvailable = digitalInputs_->stateAvailable(input);
+        status.digitalInputs[input - 1].state = digitalInputs_->isActive(input);
     }
+
+    status.flowmeter.implemented = true;
+    status.flowmeter.pulseCountAvailable = true;
+    status.flowmeter.pulseCount = digitalInputs_->flowmeterPulseCount();
+    status.flowmeter.flowLMinAvailable = true;
+    status.flowmeter.flowLMin = digitalInputs_->flowmeterFlowLMin();
+    status.flowmeter.totalLAvailable = true;
+    status.flowmeter.totalL = digitalInputs_->flowmeterTotalL();
 
     return status;
 }

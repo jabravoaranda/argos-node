@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Config.h>
+#include <DigitalInputs.h>
 #include <Metrics.h>
 #include <Relays.h>
 #include <Valves.h>
@@ -101,7 +102,7 @@ struct NodeMetrics {
 class NodeState {
 public:
     /** Attach state sources owned by hardware and service modules. */
-    void begin(const Config& config, const Relays& relays, const Valves& valves, const WiFiManager& wifi, const Metrics& metrics);
+    void begin(const Config& config, const Relays& relays, const Valves& valves, const DigitalInputs& digitalInputs, const WiFiManager& wifi, const Metrics& metrics);
 
     NodeHealth health() const;
     NodeInfo info() const;
@@ -118,6 +119,7 @@ private:
     const Config* config_ = nullptr;
     const Relays* relays_ = nullptr;
     const Valves* valves_ = nullptr;
+    const DigitalInputs* digitalInputs_ = nullptr;
     const WiFiManager* wifi_ = nullptr;
     const Metrics* metrics_ = nullptr;
 };
