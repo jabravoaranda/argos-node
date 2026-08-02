@@ -73,8 +73,17 @@ NodeStatus NodeState::status() const {
     status.flowmeter.pulseCount = digitalInputs_->flowmeterPulseCount();
     status.flowmeter.flowLMinAvailable = true;
     status.flowmeter.flowLMin = digitalInputs_->flowmeterFlowLMin();
+    status.flowmeter.bootTotalLAvailable = true;
+    status.flowmeter.bootTotalL = digitalInputs_->flowmeterBootTotalL();
     status.flowmeter.totalLAvailable = true;
     status.flowmeter.totalL = digitalInputs_->flowmeterTotalL();
+    status.flowmeter.hydrologicalYearLAvailable = true;
+    status.flowmeter.hydrologicalYearL = digitalInputs_->flowmeterHydrologicalYearL();
+    status.flowmeter.sessionActive = digitalInputs_->flowmeterSessionActive();
+    status.flowmeter.sessionLAvailable = true;
+    status.flowmeter.sessionL = digitalInputs_->flowmeterSessionL();
+    status.flowmeter.lastSessionLAvailable = true;
+    status.flowmeter.lastSessionL = digitalInputs_->flowmeterLastSessionL();
 
     return status;
 }

@@ -32,6 +32,12 @@ public:
     /** Set one relay output by 1-based relay id. */
     bool setRelay(uint8_t id, bool state) override;
 
+    void startFlowmeterSession() override;
+    void stopFlowmeterSession() override;
+    void resetFlowmeterSession() override;
+    void resetFlowmeterTotal() override;
+    void resetFlowmeterHydrologicalYear() override;
+
     /** Read one relay output by 1-based relay id. */
     bool relayState(uint8_t id) const override;
 

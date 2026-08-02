@@ -75,6 +75,15 @@ void HttpApi::registerWriteRoutes() {
 
     server_.on(UriBraces("/valves/{}/close"), HTTP_POST, [this]() { handleCloseValve(); });
     logger_->info(F("HTTP API endpoint registered: POST /valves/{id}/close"));
+
+    server_.on("/flowmeter/reset-session", HTTP_POST, [this]() { handleResetFlowmeterSession(); });
+    logger_->info(F("HTTP API endpoint registered: POST /flowmeter/reset-session"));
+
+    server_.on("/flowmeter/reset-total", HTTP_POST, [this]() { handleResetFlowmeterTotal(); });
+    logger_->info(F("HTTP API endpoint registered: POST /flowmeter/reset-total"));
+
+    server_.on("/flowmeter/reset-hydrological-year", HTTP_POST, [this]() { handleResetFlowmeterHydrologicalYear(); });
+    logger_->info(F("HTTP API endpoint registered: POST /flowmeter/reset-hydrological-year"));
 }
 
 void HttpApi::handleHealth() {
@@ -137,11 +146,14 @@ void HttpApi::handleSetValve() {
         return;
     }
 
+    const ValveState previousState = status.state;
     logValveWriteClient(valveId, requestedState);
     if (!valves_->setState(valveId, requestedState)) {
         sendError(500, F("valve_command_failed"));
         return;
     }
+
+    updateFlowmeterSession(previousState, requestedState);
 
     if (!valves_->status(valveId, status)) {
         sendError(500, F("valve_status_unavailable"));
@@ -163,11 +175,14 @@ void HttpApi::handleOpenValve() {
         return;
     }
 
+    const ValveState previousState = status.state;
     logValveWriteClient(valveId, ValveState::Open);
     if (!valves_->open(valveId)) {
         sendError(500, F("valve_command_failed"));
         return;
     }
+
+    updateFlowmeterSession(previousState, ValveState::Open);
 
     if (!valves_->status(valveId, status)) {
         sendError(500, F("valve_status_unavailable"));
@@ -189,11 +204,14 @@ void HttpApi::handleCloseValve() {
         return;
     }
 
+    const ValveState previousState = status.state;
     logValveWriteClient(valveId, ValveState::Closed);
     if (!valves_->close(valveId)) {
         sendError(500, F("valve_command_failed"));
         return;
     }
+
+    updateFlowmeterSession(previousState, ValveState::Closed);
 
     if (!valves_->status(valveId, status)) {
         sendError(500, F("valve_status_unavailable"));
@@ -225,6 +243,21 @@ void HttpApi::handleSetRelay() {
     sendJson(200, JsonSerializer::relayCommand(relay, queryPort_->relayState(relay)));
 }
 
+void HttpApi::handleResetFlowmeterSession() {
+    commandPort_->resetFlowmeterSession();
+    sendResetOk(F("session"));
+}
+
+void HttpApi::handleResetFlowmeterTotal() {
+    commandPort_->resetFlowmeterTotal();
+    sendResetOk(F("total"));
+}
+
+void HttpApi::handleResetFlowmeterHydrologicalYear() {
+    commandPort_->resetFlowmeterHydrologicalYear();
+    sendResetOk(F("hydrological_year"));
+}
+
 void HttpApi::handleNotFound() {
     if (logger_ != nullptr) {
         logger_->info(F("HTTP API request failed: not found"));
@@ -243,8 +276,27 @@ void HttpApi::sendError(int statusCode, const __FlashStringHelper* error) {
     sendJson(statusCode, body);
 }
 
+void HttpApi::sendResetOk(const __FlashStringHelper* reset) {
+    String body = F("{\"result\":\"ok\",\"reset\":\"");
+    body += reset;
+    body += F("\"}");
+    sendJson(200, body);
+}
+
 bool HttpApi::configuredValveStatus(uint8_t valveId, ValveStatus& status) {
     return valves_ != nullptr && valves_->status(valveId, status);
+}
+
+void HttpApi::updateFlowmeterSession(ValveState previousState, ValveState requestedState) {
+    if (commandPort_ == nullptr || previousState == requestedState) {
+        return;
+    }
+
+    if (requestedState == ValveState::Open) {
+        commandPort_->startFlowmeterSession();
+    } else {
+        commandPort_->stopFlowmeterSession();
+    }
 }
 
 bool HttpApi::parseRelayId(const String& text, uint8_t& relay) const {

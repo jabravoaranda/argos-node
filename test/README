@@ -18,3 +18,6 @@ Use the current node IP printed after WiFi connects.
 7. Send `GET /valves/1` and confirm HTTP 404.
 8. Confirm `GET /outputs` and `PUT /outputs/relays/1` still work.
 9. Confirm relays 1 through 7 do not change during valve 8 commands.
+10. Confirm `session_active` is true while valve 8 is open and false after it closes.
+11. Confirm `last_session_l` keeps the closed-session total after valve 8 closes.
+12. Confirm `POST /flowmeter/reset-hydrological-year` resets `hydrological_year_l`.

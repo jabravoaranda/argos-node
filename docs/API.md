@@ -26,6 +26,9 @@ No authentication is implemented in `v0.1.0`.
 | PUT | `/valves/8` | Open or close electroválvula 8 |
 | POST | `/valves/8/open` | Open electroválvula 8 |
 | POST | `/valves/8/close` | Close electroválvula 8 |
+| POST | `/flowmeter/reset-session` | Reset current and last flowmeter session counters |
+| POST | `/flowmeter/reset-total` | Reset resettable total flowmeter counter |
+| POST | `/flowmeter/reset-hydrological-year` | Reset hydrological-year flowmeter counter |
 
 ## GET /health
 
@@ -165,7 +168,12 @@ Response `200`:
     "implemented": true,
     "pulse_count": 27,
     "flow_l_min": 60.0,
-    "total_l": 1.0
+    "boot_total_l": 1.0,
+    "total_l": 1.0,
+    "hydrological_year_l": 1.0,
+    "session_active": false,
+    "session_l": 1.0,
+    "last_session_l": 1.0
   },
   "system": {
     "free_heap_bytes": 0,
@@ -482,6 +490,67 @@ Shortcut to close electroválvula 8.
 Invoke-RestMethod -Method Post http://192.168.1.138/valves/8/close
 ```
 
+## Flowmeter API
+
+The YF-DN32 flowmeter is wired to DI8. `GET /status` exposes:
+
+| Field | Meaning |
+| --- | --- |
+| `pulse_count` | Raw pulse count since boot |
+| `flow_l_min` | Latest sampled flow rate |
+| `boot_total_l` | Liters since boot |
+| `total_l` | Liters since the last total reset |
+| `hydrological_year_l` | Liters since the last hydrological-year reset |
+| `session_active` | Whether an EV8 session is active |
+| `session_l` | Liters in the active session, or last session when inactive |
+| `last_session_l` | Liters in the last closed EV8 session |
+
+Opening EV8 starts a new flowmeter session. Closing EV8 stops it and freezes
+`last_session_l`. Repeating an open command while EV8 is already open does not
+reset the active session. Direct relay writes through `/outputs/relays/8` do
+not start or stop a flowmeter session.
+
+### POST /flowmeter/reset-session
+
+Resets the current and last session counters.
+
+Response `200`:
+
+```json
+{
+  "result": "ok",
+  "reset": "session"
+}
+```
+
+### POST /flowmeter/reset-total
+
+Resets `total_l`. It does not reset `boot_total_l`, `hydrological_year_l`, or
+session counters.
+
+Response `200`:
+
+```json
+{
+  "result": "ok",
+  "reset": "total"
+}
+```
+
+### POST /flowmeter/reset-hydrological-year
+
+Resets `hydrological_year_l`. ARGOS Core should call this endpoint when the
+administrative hydrological year starts.
+
+Response `200`:
+
+```json
+{
+  "result": "ok",
+  "reset": "hydrological_year"
+}
+```
+
 ## Notes
 
 - Normal firmware boots with all relays OFF.
@@ -489,4 +558,5 @@ Invoke-RestMethod -Method Post http://192.168.1.138/valves/8/close
 - No relay is energized automatically in normal builds.
 - DI8 is exposed as the implemented digital input for the flowmeter.
 - Flowmeter fields are calculated from DI8 using the YF-DN32 formula `F = 0.45 x Q`.
+- Flowmeter counters are RAM-backed and reset on firmware reboot unless ARGOS Core persists them externally.
 - WiFi SSID may appear in `/status`; WiFi password is never returned.

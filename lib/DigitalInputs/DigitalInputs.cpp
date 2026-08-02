@@ -56,12 +56,76 @@ uint32_t DigitalInputs::flowmeterPulseCount() const {
     return pulseCountSnapshot();
 }
 
+uint32_t DigitalInputs::flowmeterResettablePulseCount() const {
+    return pulseCountSnapshot() - totalResetPulseCount_;
+}
+
+uint32_t DigitalInputs::flowmeterHydrologicalYearPulseCount() const {
+    return pulseCountSnapshot() - hydrologicalYearResetPulseCount_;
+}
+
+uint32_t DigitalInputs::flowmeterSessionPulseCount() const {
+    if (!sessionActive_) {
+        return lastSessionPulseCount_;
+    }
+
+    return pulseCountSnapshot() - sessionStartPulseCount_;
+}
+
 float DigitalInputs::flowmeterFlowLMin() const {
     return flowLMin_;
 }
 
+float DigitalInputs::flowmeterBootTotalL() const {
+    return pulsesToLiters(pulseCountSnapshot());
+}
+
 float DigitalInputs::flowmeterTotalL() const {
-    return static_cast<float>(pulseCountSnapshot()) / kYfDn32PulsesPerLiter;
+    return pulsesToLiters(flowmeterResettablePulseCount());
+}
+
+float DigitalInputs::flowmeterHydrologicalYearL() const {
+    return pulsesToLiters(flowmeterHydrologicalYearPulseCount());
+}
+
+float DigitalInputs::flowmeterSessionL() const {
+    return pulsesToLiters(flowmeterSessionPulseCount());
+}
+
+float DigitalInputs::flowmeterLastSessionL() const {
+    return pulsesToLiters(lastSessionPulseCount_);
+}
+
+bool DigitalInputs::flowmeterSessionActive() const {
+    return sessionActive_;
+}
+
+void DigitalInputs::startFlowmeterSession() {
+    sessionStartPulseCount_ = pulseCountSnapshot();
+    lastSessionPulseCount_ = 0;
+    sessionActive_ = true;
+}
+
+void DigitalInputs::stopFlowmeterSession() {
+    if (!sessionActive_) {
+        return;
+    }
+
+    lastSessionPulseCount_ = pulseCountSnapshot() - sessionStartPulseCount_;
+    sessionActive_ = false;
+}
+
+void DigitalInputs::resetFlowmeterSession() {
+    sessionStartPulseCount_ = pulseCountSnapshot();
+    lastSessionPulseCount_ = 0;
+}
+
+void DigitalInputs::resetFlowmeterTotal() {
+    totalResetPulseCount_ = pulseCountSnapshot();
+}
+
+void DigitalInputs::resetFlowmeterHydrologicalYear() {
+    hydrologicalYearResetPulseCount_ = pulseCountSnapshot();
 }
 
 void IRAM_ATTR DigitalInputs::handleFlowmeterPulse() {
@@ -87,6 +151,10 @@ uint32_t DigitalInputs::pulseCountSnapshot() const {
     const uint32_t pulseCount = flowmeterPulseCount_;
     interrupts();
     return pulseCount;
+}
+
+float DigitalInputs::pulsesToLiters(uint32_t pulses) {
+    return static_cast<float>(pulses) / kYfDn32PulsesPerLiter;
 }
 
 }  // namespace argos

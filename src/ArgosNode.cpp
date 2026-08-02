@@ -40,6 +40,26 @@ bool ArgosNode::setRelay(uint8_t id, bool state) {
     return relays_.setRelay(id, state);
 }
 
+void ArgosNode::startFlowmeterSession() {
+    digitalInputs_.startFlowmeterSession();
+}
+
+void ArgosNode::stopFlowmeterSession() {
+    digitalInputs_.stopFlowmeterSession();
+}
+
+void ArgosNode::resetFlowmeterSession() {
+    digitalInputs_.resetFlowmeterSession();
+}
+
+void ArgosNode::resetFlowmeterTotal() {
+    digitalInputs_.resetFlowmeterTotal();
+}
+
+void ArgosNode::resetFlowmeterHydrologicalYear() {
+    digitalInputs_.resetFlowmeterHydrologicalYear();
+}
+
 bool ArgosNode::relayState(uint8_t id) const {
     return relays_.isOn(id);
 }

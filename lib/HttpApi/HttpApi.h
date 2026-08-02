@@ -40,10 +40,15 @@ private:
     void handleOpenValve();
     void handleCloseValve();
     void handleSetRelay();
+    void handleResetFlowmeterSession();
+    void handleResetFlowmeterTotal();
+    void handleResetFlowmeterHydrologicalYear();
     void handleNotFound();
     void sendJson(int statusCode, const String& body);
     void sendError(int statusCode, const __FlashStringHelper* error);
+    void sendResetOk(const __FlashStringHelper* reset);
     bool configuredValveStatus(uint8_t valveId, ValveStatus& status);
+    void updateFlowmeterSession(ValveState previousState, ValveState requestedState);
     bool parseRelayId(const String& text, uint8_t& relay) const;
     bool parseRelayStateBody(const String& body, bool& state, String& error) const;
     bool parseValveId(const String& text, uint8_t& valveId) const;

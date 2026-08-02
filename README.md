@@ -143,6 +143,9 @@ Stable endpoints:
 - `PUT /valves/8`
 - `POST /valves/8/open`
 - `POST /valves/8/close`
+- `POST /flowmeter/reset-session`
+- `POST /flowmeter/reset-total`
+- `POST /flowmeter/reset-hydrological-year`
 
 See [docs/API.md](docs/API.md) for request/response formats, status codes, and
 examples.
@@ -246,6 +249,28 @@ Invoke-RestMethod -Method Post http://192.168.1.138/valves/8/open
 Invoke-RestMethod -Method Post http://192.168.1.138/valves/8/close
 ```
 
+## Flowmeter Counters
+
+The DI8 YF-DN32 flowmeter exposes boot, resettable, hydrological-year, and
+valve-session counters in `GET /status`.
+
+- `boot_total_l`: accumulated liters since boot.
+- `total_l`: accumulated liters since the last `reset-total` command.
+- `hydrological_year_l`: accumulated liters since the last hydrological-year reset.
+- `session_l`: liters in the active EV8 session, or the last session if EV8 is closed.
+- `last_session_l`: liters in the last closed EV8 session.
+
+Flowmeter sessions are controlled by `/valves/8` commands. Direct relay writes
+through `/outputs/relays/8` do not start or stop a valve session.
+
+Manual reset endpoints:
+
+```powershell
+Invoke-RestMethod -Method Post http://192.168.1.138/flowmeter/reset-session
+Invoke-RestMethod -Method Post http://192.168.1.138/flowmeter/reset-total
+Invoke-RestMethod -Method Post http://192.168.1.138/flowmeter/reset-hydrological-year
+```
+
 Manual validation checklist:
 
 1. Reboot the ESP32 and verify `GET /valves/8` returns `"state":"closed"`.
@@ -255,6 +280,7 @@ Manual validation checklist:
 5. Run `PUT /valves/8` with `{"state":"bad"}` and verify HTTP 400.
 6. Run `GET /valves/1` and verify HTTP 404.
 7. Read `GET /outputs` before and after valve commands and verify relays 1..7 do not change.
+8. Verify `session_active` becomes `true` when EV8 opens and `false` when EV8 closes.
 
 ## Relay Testing
 

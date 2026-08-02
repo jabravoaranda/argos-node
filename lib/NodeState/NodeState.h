@@ -72,8 +72,17 @@ struct FlowmeterState {
     uint32_t pulseCount = 0;
     bool flowLMinAvailable = false;
     float flowLMin = 0.0F;
+    bool bootTotalLAvailable = false;
+    float bootTotalL = 0.0F;
     bool totalLAvailable = false;
     float totalL = 0.0F;
+    bool hydrologicalYearLAvailable = false;
+    float hydrologicalYearL = 0.0F;
+    bool sessionActive = false;
+    bool sessionLAvailable = false;
+    float sessionL = 0.0F;
+    bool lastSessionLAvailable = false;
+    float lastSessionL = 0.0F;
 };
 
 struct NodeStatus {
