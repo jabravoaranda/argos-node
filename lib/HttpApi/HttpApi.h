@@ -48,7 +48,7 @@ private:
     void sendError(int statusCode, const __FlashStringHelper* error);
     void sendResetOk(const __FlashStringHelper* reset);
     bool configuredValveStatus(uint8_t valveId, ValveStatus& status);
-    void updateFlowmeterSession(ValveState previousState, ValveState requestedState);
+    void updateFlowmeterSession(uint8_t valveId, ValveState previousState, ValveState requestedState);
     bool parseRelayId(const String& text, uint8_t& relay) const;
     bool parseRelayStateBody(const String& body, bool& state, String& error) const;
     bool parseValveId(const String& text, uint8_t& valveId) const;

@@ -22,10 +22,10 @@ No authentication is implemented in `v0.1.0`.
 | GET | `/outputs` | Current output states |
 | PUT | `/outputs/relays/<id>` | Set one relay output |
 | GET | `/valves` | Current configured valve states |
-| GET | `/valves/8` | Current state for electroválvula 8 |
-| PUT | `/valves/8` | Open or close electroválvula 8 |
-| POST | `/valves/8/open` | Open electroválvula 8 |
-| POST | `/valves/8/close` | Close electroválvula 8 |
+| GET | `/valves/<id>` | Current state for configured electroválvula `6`, `7`, or `8` |
+| PUT | `/valves/<id>` | Open or close configured electroválvula `6`, `7`, or `8` |
+| POST | `/valves/<id>/open` | Open configured electroválvula `6`, `7`, or `8` |
+| POST | `/valves/<id>/close` | Close configured electroválvula `6`, `7`, or `8` |
 | POST | `/flowmeter/reset-session` | Reset current and last flowmeter session counters |
 | POST | `/flowmeter/reset-total` | Reset resettable total flowmeter counter |
 | POST | `/flowmeter/reset-hydrological-year` | Reset hydrological-year flowmeter counter |
@@ -73,6 +73,10 @@ Response `200`:
   "capabilities": {
     "relays": {
       "available": 8,
+      "implemented": true
+    },
+    "valves": {
+      "available": 3,
       "implemented": true
     },
     "digital_inputs": {
@@ -144,6 +148,16 @@ Response `200`:
     ]
   },
   "valves": [
+    {
+      "id": 6,
+      "name": "electrovalvula_6",
+      "state": "closed"
+    },
+    {
+      "id": 7,
+      "name": "electrovalvula_7",
+      "state": "closed"
+    },
     {
       "id": 8,
       "name": "electrovalvula_8",
@@ -351,10 +365,10 @@ curl -X PUT http://192.168.1.138/outputs/relays/1 -H "Content-Type: application/
 
 ## Valve API
 
-Electroválvula 8 is physically wired to relay CH8. Relay CH8 ON means the
-valve is open; relay CH8 OFF means the valve is closed. The valve API reuses
-the relay driver through the semantic valve controller and does not write to
-the TCA9554 directly.
+Electroválvulas 6, 7, and 8 are physically wired to relay channels CH6, CH7,
+and CH8. Relay ON means the valve is open; relay OFF means the valve is closed.
+The valve API reuses the relay driver through the semantic valve controller and
+does not write to the TCA9554 directly.
 
 The IP address is assigned by the active network. Replace `192.168.1.138` in
 the examples with the IP address printed by the node after WiFi connects.
@@ -368,6 +382,18 @@ Response `200`:
 ```json
 {
   "valves": [
+    {
+      "id": 6,
+      "name": "electrovalvula_6",
+      "relay_id": 6,
+      "state": "closed"
+    },
+    {
+      "id": 7,
+      "name": "electrovalvula_7",
+      "relay_id": 7,
+      "state": "closed"
+    },
     {
       "id": 8,
       "name": "electrovalvula_8",
@@ -384,10 +410,10 @@ Example:
 Invoke-RestMethod http://192.168.1.138/valves
 ```
 
-### GET /valves/8
+### GET /valves/<id>
 
-Returns electroválvula 8 state. The returned state reflects the relay state
-stored by the relay driver.
+Returns configured electroválvula state for ID `6`, `7`, or `8`. The returned
+state reflects the relay state stored by the relay driver.
 
 Response `200`:
 
@@ -412,9 +438,9 @@ Example:
 Invoke-RestMethod http://192.168.1.138/valves/8
 ```
 
-### PUT /valves/8
+### PUT /valves/<id>
 
-Opens or closes electroválvula 8.
+Opens or closes configured electroválvula `6`, `7`, or `8`.
 
 Request body:
 
@@ -474,17 +500,17 @@ Invoke-RestMethod `
   -Body '{"state":"closed"}'
 ```
 
-### POST /valves/8/open
+### POST /valves/<id>/open
 
-Shortcut to open electroválvula 8.
+Shortcut to open configured electroválvula `6`, `7`, or `8`.
 
 ```powershell
 Invoke-RestMethod -Method Post http://192.168.1.138/valves/8/open
 ```
 
-### POST /valves/8/close
+### POST /valves/<id>/close
 
-Shortcut to close electroválvula 8.
+Shortcut to close configured electroválvula `6`, `7`, or `8`.
 
 ```powershell
 Invoke-RestMethod -Method Post http://192.168.1.138/valves/8/close
@@ -507,8 +533,8 @@ The YF-DN32 flowmeter is wired to DI8. `GET /status` exposes:
 
 Opening EV8 starts a new flowmeter session. Closing EV8 stops it and freezes
 `last_session_l`. Repeating an open command while EV8 is already open does not
-reset the active session. Direct relay writes through `/outputs/relays/8` do
-not start or stop a flowmeter session.
+reset the active session. EV6, EV7, and direct relay writes do not start or stop
+a flowmeter session.
 
 ### POST /flowmeter/reset-session
 

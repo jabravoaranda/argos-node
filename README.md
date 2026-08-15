@@ -139,10 +139,10 @@ Stable endpoints:
 - `GET /outputs`
 - `PUT /outputs/relays/<id>`
 - `GET /valves`
-- `GET /valves/8`
-- `PUT /valves/8`
-- `POST /valves/8/open`
-- `POST /valves/8/close`
+- `GET /valves/<id>` for configured valve IDs `6`, `7`, and `8`
+- `PUT /valves/<id>` for configured valve IDs `6`, `7`, and `8`
+- `POST /valves/<id>/open` for configured valve IDs `6`, `7`, and `8`
+- `POST /valves/<id>/close` for configured valve IDs `6`, `7`, and `8`
 - `POST /flowmeter/reset-session`
 - `POST /flowmeter/reset-total`
 - `POST /flowmeter/reset-hydrological-year`
@@ -202,42 +202,42 @@ Helper script:
 .\tools\relay.ps1 status
 ```
 
-## Electroválvula 8
+## Electroválvulas 6, 7, and 8
 
-Electroválvula 8 is wired to relay CH8 on the Waveshare
+Electroválvulas 6, 7, and 8 are wired to relay channels CH6, CH7, and CH8 on the Waveshare
 ESP32-S3-POE-ETH-8DI-8RO:
 
-- CH8 `COM` to `LOAD+`.
-- CH8 `NO` to the electroválvula red wire.
+- Relay `COM` to `LOAD+`.
+- Relay `NO` to the electroválvula red wire.
 - Electroválvula black wire to `LOAD-`.
-- Relay CH8 ON means electroválvula open.
-- Relay CH8 OFF means electroválvula closed.
+- Relay ON means electroválvula open.
+- Relay OFF means electroválvula closed.
 
 The semantic valve API lets ARGOS request valve operations without addressing
 the physical relay directly.
 
-Open electroválvula 8:
+Open electroválvula 6:
 
 ```powershell
 Invoke-RestMethod `
   -Method Put `
-  -Uri "http://192.168.1.138/valves/8" `
+  -Uri "http://192.168.1.138/valves/6" `
   -ContentType "application/json" `
   -Body '{"state":"open"}'
 ```
 
-Read electroválvula 8:
+Read configured electroválvulas:
 
 ```powershell
-Invoke-RestMethod http://192.168.1.138/valves/8
+Invoke-RestMethod http://192.168.1.138/valves
 ```
 
-Close electroválvula 8:
+Close electroválvula 6:
 
 ```powershell
 Invoke-RestMethod `
   -Method Put `
-  -Uri "http://192.168.1.138/valves/8" `
+  -Uri "http://192.168.1.138/valves/6" `
   -ContentType "application/json" `
   -Body '{"state":"closed"}'
 ```
@@ -245,8 +245,8 @@ Invoke-RestMethod `
 Shortcut endpoints:
 
 ```powershell
-Invoke-RestMethod -Method Post http://192.168.1.138/valves/8/open
-Invoke-RestMethod -Method Post http://192.168.1.138/valves/8/close
+Invoke-RestMethod -Method Post http://192.168.1.138/valves/6/open
+Invoke-RestMethod -Method Post http://192.168.1.138/valves/6/close
 ```
 
 ## Flowmeter Counters
@@ -260,8 +260,8 @@ valve-session counters in `GET /status`.
 - `session_l`: liters in the active EV8 session, or the last session if EV8 is closed.
 - `last_session_l`: liters in the last closed EV8 session.
 
-Flowmeter sessions are controlled by `/valves/8` commands. Direct relay writes
-through `/outputs/relays/8` do not start or stop a valve session.
+Flowmeter sessions are controlled only by `/valves/8` commands. Commands for
+EV6, EV7, or direct relay writes do not start or stop a valve session.
 
 Manual reset endpoints:
 
@@ -273,14 +273,14 @@ Invoke-RestMethod -Method Post http://192.168.1.138/flowmeter/reset-hydrological
 
 Manual validation checklist:
 
-1. Reboot the ESP32 and verify `GET /valves/8` returns `"state":"closed"`.
-2. Run `PUT /valves/8` with `{"state":"open"}` and verify CH8 activates.
-3. Run `GET /valves/8` and verify it returns `"state":"open"`.
-4. Run `PUT /valves/8` with `{"state":"closed"}` and verify CH8 deactivates.
-5. Run `PUT /valves/8` with `{"state":"bad"}` and verify HTTP 400.
-6. Run `GET /valves/1` and verify HTTP 404.
-7. Read `GET /outputs` before and after valve commands and verify relays 1..7 do not change.
-8. Verify `session_active` becomes `true` when EV8 opens and `false` when EV8 closes.
+1. Reboot the ESP32 and verify `GET /valves` returns valves 6, 7, and 8 as `"state":"closed"`.
+2. Run `PUT /valves/6` with `{"state":"open"}` and verify CH6 activates.
+3. Run `PUT /valves/7` with `{"state":"open"}` and verify CH7 activates.
+4. Run `PUT /valves/8` with `{"state":"open"}` and verify CH8 activates.
+5. Close valves 6, 7, and 8 and verify CH6, CH7, and CH8 deactivate.
+6. Run `PUT /valves/8` with `{"state":"bad"}` and verify HTTP 400.
+7. Run `GET /valves/1` and verify HTTP 404.
+8. Verify `session_active` changes only when EV8 opens or closes, not when EV6 or EV7 changes.
 
 ## Relay Testing
 

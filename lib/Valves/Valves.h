@@ -24,15 +24,20 @@ struct ValveStatus {
 /**
  * Semantic valve controller.
  *
- * Valve 8 is physically wired to relay CH8:
+ * Configured valves are physically wired to matching relay channels:
  * relay ON means valve open, relay OFF means valve closed.
  */
 class Valves {
 public:
-    static constexpr uint8_t kValveCount = 1;
+    static constexpr uint8_t kValveCount = 3;
     static constexpr uint8_t kMaxValveId = 8;
+    static constexpr uint8_t kValve6Id = 6;
+    static constexpr uint8_t kValve6RelayId = 6;
+    static constexpr uint8_t kValve7Id = 7;
+    static constexpr uint8_t kValve7RelayId = 7;
     static constexpr uint8_t kValve8Id = 8;
     static constexpr uint8_t kValve8RelayId = 8;
+    static constexpr uint8_t kFlowmeterValveId = kValve8Id;
 
     /** Attach the relay driver and force configured valves to their safe closed state. */
     void begin(const Config& config, Relays& relays, const Logger& logger);
@@ -54,6 +59,8 @@ private:
     };
 
     static constexpr ValveConfig kValveConfigs[kValveCount] = {
+        {kValve6Id, "electrovalvula_6", kValve6RelayId},
+        {kValve7Id, "electrovalvula_7", kValve7RelayId},
         {kValve8Id, "electrovalvula_8", kValve8RelayId},
     };
 

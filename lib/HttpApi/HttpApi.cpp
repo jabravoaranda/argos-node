@@ -153,7 +153,7 @@ void HttpApi::handleSetValve() {
         return;
     }
 
-    updateFlowmeterSession(previousState, requestedState);
+    updateFlowmeterSession(valveId, previousState, requestedState);
 
     if (!valves_->status(valveId, status)) {
         sendError(500, F("valve_status_unavailable"));
@@ -182,7 +182,7 @@ void HttpApi::handleOpenValve() {
         return;
     }
 
-    updateFlowmeterSession(previousState, ValveState::Open);
+    updateFlowmeterSession(valveId, previousState, ValveState::Open);
 
     if (!valves_->status(valveId, status)) {
         sendError(500, F("valve_status_unavailable"));
@@ -211,7 +211,7 @@ void HttpApi::handleCloseValve() {
         return;
     }
 
-    updateFlowmeterSession(previousState, ValveState::Closed);
+    updateFlowmeterSession(valveId, previousState, ValveState::Closed);
 
     if (!valves_->status(valveId, status)) {
         sendError(500, F("valve_status_unavailable"));
@@ -287,8 +287,8 @@ bool HttpApi::configuredValveStatus(uint8_t valveId, ValveStatus& status) {
     return valves_ != nullptr && valves_->status(valveId, status);
 }
 
-void HttpApi::updateFlowmeterSession(ValveState previousState, ValveState requestedState) {
-    if (commandPort_ == nullptr || previousState == requestedState) {
+void HttpApi::updateFlowmeterSession(uint8_t valveId, ValveState previousState, ValveState requestedState) {
+    if (commandPort_ == nullptr || valveId != Valves::kFlowmeterValveId || previousState == requestedState) {
         return;
     }
 

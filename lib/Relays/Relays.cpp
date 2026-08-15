@@ -49,14 +49,14 @@ bool Relays::testRelay(uint8_t relay) {
 #endif
 
 bool Relays::allOff() {
-    outputState_ = kAllRelaysOff;
-    if (!writeRegister(kTca9554OutputRegister, outputState_)) {
+    if (!writeRegister(kTca9554OutputRegister, kAllRelaysOff)) {
         if (logger_ != nullptr) {
             logger_->info(F("Relays: failed to write OFF state"));
         }
         return false;
     }
 
+    outputState_ = kAllRelaysOff;
     if (logger_ != nullptr) {
         logger_->info(F("All relays OFF"));
     }
@@ -81,19 +81,21 @@ bool Relays::setRelay(uint8_t relay, bool enabled) {
     }
 
     const uint8_t bit = static_cast<uint8_t>(1U << (relay - 1U));
+    uint8_t nextState = outputState_;
     if (enabled) {
-        outputState_ = static_cast<uint8_t>(outputState_ | bit);
+        nextState = static_cast<uint8_t>(nextState | bit);
     } else {
-        outputState_ = static_cast<uint8_t>(outputState_ & ~bit);
+        nextState = static_cast<uint8_t>(nextState & ~bit);
     }
 
-    if (!writeRegister(kTca9554OutputRegister, outputState_)) {
+    if (!writeRegister(kTca9554OutputRegister, nextState)) {
         if (logger_ != nullptr) {
             logger_->info(F("Relays: failed to write relay state"));
         }
         return false;
     }
 
+    outputState_ = nextState;
     logRelayState(relay, enabled);
     return true;
 }
