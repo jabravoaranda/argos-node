@@ -8,7 +8,7 @@ agronomic logic belongs to ARGOS Core, not to this firmware.
 
 ## Status
 
-First stable milestone: `v0.1.0`.
+Current firmware version: `v0.1.1`.
 
 Validated on target hardware:
 
@@ -119,7 +119,7 @@ On startup the node prints a boot banner:
 ```text
 --------------------------------
 ARGOS Node
-Firmware version: 0.1.0
+Firmware version: 0.1.1
 Build date: <compiler date/time>
 Board: Waveshare ESP32-S3-POE-ETH-8DI-8RO
 --------------------------------
@@ -139,10 +139,10 @@ Stable endpoints:
 - `GET /outputs`
 - `PUT /outputs/relays/<id>`
 - `GET /valves`
-- `GET /valves/<id>` for configured valve IDs `6`, `7`, and `8`
-- `PUT /valves/<id>` for configured valve IDs `6`, `7`, and `8`
-- `POST /valves/<id>/open` for configured valve IDs `6`, `7`, and `8`
-- `POST /valves/<id>/close` for configured valve IDs `6`, `7`, and `8`
+- `GET /valves/<id>` for configured valve IDs `4` through `8`
+- `PUT /valves/<id>` for configured valve IDs `4` through `8`
+- `POST /valves/<id>/open` for configured valve IDs `4` through `8`
+- `POST /valves/<id>/close` for configured valve IDs `4` through `8`
 - `POST /flowmeter/reset-session`
 - `POST /flowmeter/reset-total`
 - `POST /flowmeter/reset-hydrological-year`
@@ -202,10 +202,10 @@ Helper script:
 .\tools\relay.ps1 status
 ```
 
-## Electroválvulas 6, 7, and 8
+## Electroválvulas 4 through 8
 
-Electroválvulas 6, 7, and 8 are wired to relay channels CH6, CH7, and CH8 on the Waveshare
-ESP32-S3-POE-ETH-8DI-8RO:
+Electroválvulas 4 through 8 are wired to their matching relay channels CH4
+through CH8 on the Waveshare ESP32-S3-POE-ETH-8DI-8RO:
 
 - Relay `COM` to `LOAD+`.
 - Relay `NO` to the electroválvula red wire.
@@ -261,7 +261,7 @@ valve-session counters in `GET /status`.
 - `last_session_l`: liters in the last closed EV8 session.
 
 Flowmeter sessions are controlled only by `/valves/8` commands. Commands for
-EV6, EV7, or direct relay writes do not start or stop a valve session.
+EV4, EV5, EV6, EV7, or direct relay writes do not start or stop a valve session.
 
 Manual reset endpoints:
 
@@ -273,14 +273,12 @@ Invoke-RestMethod -Method Post http://192.168.1.138/flowmeter/reset-hydrological
 
 Manual validation checklist:
 
-1. Reboot the ESP32 and verify `GET /valves` returns valves 6, 7, and 8 as `"state":"closed"`.
-2. Run `PUT /valves/6` with `{"state":"open"}` and verify CH6 activates.
-3. Run `PUT /valves/7` with `{"state":"open"}` and verify CH7 activates.
-4. Run `PUT /valves/8` with `{"state":"open"}` and verify CH8 activates.
-5. Close valves 6, 7, and 8 and verify CH6, CH7, and CH8 deactivate.
-6. Run `PUT /valves/8` with `{"state":"bad"}` and verify HTTP 400.
-7. Run `GET /valves/1` and verify HTTP 404.
-8. Verify `session_active` changes only when EV8 opens or closes, not when EV6 or EV7 changes.
+1. Reboot the ESP32 and verify `GET /valves` returns valves 4 through 8 as `"state":"closed"`.
+2. Verify `GET /valves/4` and `GET /valves/5` report relays 4 and 5 respectively.
+3. With explicit authorization for hardware actuation, verify each valve command controls its matching relay CH4 through CH8.
+4. Run `PUT /valves/8` with `{"state":"bad"}` and verify HTTP 400.
+5. Run `GET /valves/1` and verify HTTP 404 with `{"error":"not_found"}`.
+6. Verify `session_active` changes only when EV8 opens or closes, not when EV4 through EV7 change.
 
 ## Relay Testing
 
@@ -299,11 +297,11 @@ Before connecting external loads:
 Suggested commit message:
 
 ```text
-Prepare ARGOS Node v0.1.0 stable milestone
+Prepare ARGOS Node v0.1.1
 ```
 
 Suggested annotated tag:
 
 ```powershell
-git tag -a v0.1.0 -m "First operational ARGOS Node"
+git tag -a v0.1.1 -m "Add EV4 and EV5 valve support"
 ```

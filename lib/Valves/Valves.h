@@ -29,8 +29,12 @@ struct ValveStatus {
  */
 class Valves {
 public:
-    static constexpr uint8_t kValveCount = 3;
+    static constexpr uint8_t kValveCount = 5;
     static constexpr uint8_t kMaxValveId = 8;
+    static constexpr uint8_t kValve4Id = 4;
+    static constexpr uint8_t kValve4RelayId = 4;
+    static constexpr uint8_t kValve5Id = 5;
+    static constexpr uint8_t kValve5RelayId = 5;
     static constexpr uint8_t kValve6Id = 6;
     static constexpr uint8_t kValve6RelayId = 6;
     static constexpr uint8_t kValve7Id = 7;
@@ -59,6 +63,8 @@ private:
     };
 
     static constexpr ValveConfig kValveConfigs[kValveCount] = {
+        {kValve4Id, "electrovalvula_4", kValve4RelayId},
+        {kValve5Id, "electrovalvula_5", kValve5RelayId},
         {kValve6Id, "electrovalvula_6", kValve6RelayId},
         {kValve7Id, "electrovalvula_7", kValve7RelayId},
         {kValve8Id, "electrovalvula_8", kValve8RelayId},

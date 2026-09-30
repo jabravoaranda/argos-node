@@ -113,13 +113,13 @@ void HttpApi::handleValves() {
 void HttpApi::handleValve() {
     uint8_t valveId = 0;
     if (!parseValveId(server_.pathArg(0), valveId)) {
-        sendError(404, F("invalid_valve"));
+        sendError(404, F("not_found"));
         return;
     }
 
     ValveStatus status;
     if (!configuredValveStatus(valveId, status)) {
-        sendError(404, F("invalid_valve"));
+        sendError(404, F("not_found"));
         return;
     }
 
@@ -129,13 +129,13 @@ void HttpApi::handleValve() {
 void HttpApi::handleSetValve() {
     uint8_t valveId = 0;
     if (!parseValveId(server_.pathArg(0), valveId)) {
-        sendError(404, F("invalid_valve"));
+        sendError(404, F("not_found"));
         return;
     }
 
     ValveStatus status;
     if (!configuredValveStatus(valveId, status)) {
-        sendError(404, F("invalid_valve"));
+        sendError(404, F("not_found"));
         return;
     }
 
@@ -165,13 +165,13 @@ void HttpApi::handleSetValve() {
 void HttpApi::handleOpenValve() {
     uint8_t valveId = 0;
     if (!parseValveId(server_.pathArg(0), valveId)) {
-        sendError(404, F("invalid_valve"));
+        sendError(404, F("not_found"));
         return;
     }
 
     ValveStatus status;
     if (!configuredValveStatus(valveId, status)) {
-        sendError(404, F("invalid_valve"));
+        sendError(404, F("not_found"));
         return;
     }
 
@@ -194,13 +194,13 @@ void HttpApi::handleOpenValve() {
 void HttpApi::handleCloseValve() {
     uint8_t valveId = 0;
     if (!parseValveId(server_.pathArg(0), valveId)) {
-        sendError(404, F("invalid_valve"));
+        sendError(404, F("not_found"));
         return;
     }
 
     ValveStatus status;
     if (!configuredValveStatus(valveId, status)) {
-        sendError(404, F("invalid_valve"));
+        sendError(404, F("not_found"));
         return;
     }
 

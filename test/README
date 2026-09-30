@@ -2,23 +2,22 @@
 
 Reserved for future PlatformIO tests.
 
-No automated tests are included in `v0.1.0`; validation is currently performed
+No automated tests are included in `v0.1.1`; validation is currently performed
 with firmware builds and physical checks on the Waveshare target hardware.
 
 ## Manual valve API checks
 
 Use the current node IP printed after WiFi connects.
 
-1. Reboot the ESP32 and confirm `GET /valves` returns valves 6, 7, and 8 as `"state":"closed"`.
-2. Send `PUT /valves/6` with `{"state":"open"}` and confirm relay CH6 activates.
-3. Send `PUT /valves/7` with `{"state":"open"}` and confirm relay CH7 activates.
-4. Send `PUT /valves/8` with `{"state":"open"}` and confirm relay CH8 activates.
-5. Close valves 6, 7, and 8 and confirm relays CH6, CH7, and CH8 deactivate.
-6. Send `PUT /valves/8` with `{"state":"bad"}` and confirm HTTP 400.
-7. Send `PUT /valves/8` with `{}` and confirm HTTP 400 with `missing_state`.
-8. Send `GET /valves/1` and confirm HTTP 404.
-9. Confirm `GET /outputs` and `PUT /outputs/relays/1` still work.
-10. Confirm `session_active` changes only while valve 8 opens or closes.
-11. Confirm valve 6 and valve 7 commands do not start or stop the flowmeter session.
-12. Confirm `last_session_l` keeps the closed-session total after valve 8 closes.
-13. Confirm `POST /flowmeter/reset-hydrological-year` resets `hydrological_year_l`.
+1. Reboot the ESP32 and confirm `GET /valves` returns valves 4, 5, 6, 7, and 8 as `"state":"closed"`.
+2. Send `GET /valves/4` and `GET /valves/5` and confirm each reports its matching relay and a closed state.
+3. After explicit hardware-test approval, send the open and close commands for valves 4 and 5 and confirm relays CH4 and CH5 follow them.
+4. Repeat the explicitly approved open and close checks for valves 6, 7, and 8 on relays CH6, CH7, and CH8.
+5. Send `PUT /valves/8` with `{"state":"bad"}` and confirm HTTP 400.
+6. Send `PUT /valves/8` with `{}` and confirm HTTP 400 with `missing_state`.
+7. Send `GET /valves/1` and confirm HTTP 404 with `not_found`.
+8. Confirm `GET /outputs` and `PUT /outputs/relays/1` still work when relay actuation is explicitly authorized.
+9. Confirm `session_active` changes only while valve 8 opens or closes.
+10. Confirm valve 4, 5, 6, and 7 commands do not start or stop the flowmeter session.
+11. Confirm `last_session_l` keeps the closed-session total after valve 8 closes.
+12. Confirm `POST /flowmeter/reset-hydrological-year` resets `hydrological_year_l`.

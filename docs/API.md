@@ -9,7 +9,7 @@ The API is JSON over HTTP. Responses use:
 Content-Type: application/json
 ```
 
-No authentication is implemented in `v0.1.0`.
+No authentication is implemented in `v0.1.1`.
 
 ## Endpoint Summary
 
@@ -22,10 +22,10 @@ No authentication is implemented in `v0.1.0`.
 | GET | `/outputs` | Current output states |
 | PUT | `/outputs/relays/<id>` | Set one relay output |
 | GET | `/valves` | Current configured valve states |
-| GET | `/valves/<id>` | Current state for configured electroválvula `6`, `7`, or `8` |
-| PUT | `/valves/<id>` | Open or close configured electroválvula `6`, `7`, or `8` |
-| POST | `/valves/<id>/open` | Open configured electroválvula `6`, `7`, or `8` |
-| POST | `/valves/<id>/close` | Close configured electroválvula `6`, `7`, or `8` |
+| GET | `/valves/<id>` | Current state for configured electroválvula `4` through `8` |
+| PUT | `/valves/<id>` | Open or close configured electroválvula `4` through `8` |
+| POST | `/valves/<id>/open` | Open configured electroválvula `4` through `8` |
+| POST | `/valves/<id>/close` | Close configured electroválvula `4` through `8` |
 | POST | `/flowmeter/reset-session` | Reset current and last flowmeter session counters |
 | POST | `/flowmeter/reset-total` | Reset resettable total flowmeter counter |
 | POST | `/flowmeter/reset-hydrological-year` | Reset hydrological-year flowmeter counter |
@@ -62,7 +62,7 @@ Response `200`:
 {
   "node": {
     "name": "argos-node",
-    "firmware_version": "0.1.0",
+    "firmware_version": "0.1.1",
     "build_date": "<compiler date/time>",
     "board": "Waveshare ESP32-S3-POE-ETH-8DI-8RO"
   },
@@ -76,7 +76,7 @@ Response `200`:
       "implemented": true
     },
     "valves": {
-      "available": 3,
+      "available": 5,
       "implemented": true
     },
     "digital_inputs": {
@@ -129,7 +129,7 @@ Response `200`:
 {
   "node": {
     "name": "argos-node",
-    "firmware_version": "0.1.0",
+    "firmware_version": "0.1.1",
     "uptime_s": 1234
   },
   "network": {
@@ -148,6 +148,16 @@ Response `200`:
     ]
   },
   "valves": [
+    {
+      "id": 4,
+      "name": "electrovalvula_4",
+      "state": "closed"
+    },
+    {
+      "id": 5,
+      "name": "electrovalvula_5",
+      "state": "closed"
+    },
     {
       "id": 6,
       "name": "electrovalvula_6",
@@ -218,7 +228,7 @@ Response `200`:
   "system": {
     "uptime_s": 1832,
     "boot_count": null,
-    "firmware_version": "0.1.0",
+    "firmware_version": "0.1.1",
     "build_date": "<compiler date/time>",
     "cpu_frequency_mhz": 240
   },
@@ -365,8 +375,8 @@ curl -X PUT http://192.168.1.138/outputs/relays/1 -H "Content-Type: application/
 
 ## Valve API
 
-Electroválvulas 6, 7, and 8 are physically wired to relay channels CH6, CH7,
-and CH8. Relay ON means the valve is open; relay OFF means the valve is closed.
+Electroválvulas 4 through 8 are physically wired to their matching relay
+channels CH4 through CH8. Relay ON means the valve is open; relay OFF means the valve is closed.
 The valve API reuses the relay driver through the semantic valve controller and
 does not write to the TCA9554 directly.
 
@@ -382,6 +392,18 @@ Response `200`:
 ```json
 {
   "valves": [
+    {
+      "id": 4,
+      "name": "electrovalvula_4",
+      "relay_id": 4,
+      "state": "closed"
+    },
+    {
+      "id": 5,
+      "name": "electrovalvula_5",
+      "relay_id": 5,
+      "state": "closed"
+    },
     {
       "id": 6,
       "name": "electrovalvula_6",
@@ -412,7 +434,7 @@ Invoke-RestMethod http://192.168.1.138/valves
 
 ### GET /valves/<id>
 
-Returns configured electroválvula state for ID `6`, `7`, or `8`. The returned
+Returns configured electroválvula state for IDs `4` through `8`. The returned
 state reflects the relay state stored by the relay driver.
 
 Response `200`:
@@ -430,7 +452,7 @@ Error responses:
 
 | Status | Cause | Example response |
 | --- | --- | --- |
-| 404 | Valve id is not configured | `{"error":"invalid_valve"}` |
+| 404 | Valve id is not configured | `{"error":"not_found"}` |
 
 Example:
 
@@ -440,7 +462,7 @@ Invoke-RestMethod http://192.168.1.138/valves/8
 
 ### PUT /valves/<id>
 
-Opens or closes configured electroválvula `6`, `7`, or `8`.
+Opens or closes configured electroválvula `4` through `8`.
 
 Request body:
 
@@ -477,7 +499,7 @@ Error responses:
 | 400 | Missing `state` | `{"error":"missing_state"}` |
 | 400 | Non-string `state` | `{"error":"non_string_state"}` |
 | 400 | Unsupported `state` value | `{"error":"invalid_state"}` |
-| 404 | Valve id is not configured | `{"error":"invalid_valve"}` |
+| 404 | Valve id is not configured | `{"error":"not_found"}` |
 | 500 | Valve command failed | `{"error":"valve_command_failed"}` |
 
 Open:
@@ -502,7 +524,7 @@ Invoke-RestMethod `
 
 ### POST /valves/<id>/open
 
-Shortcut to open configured electroválvula `6`, `7`, or `8`.
+Shortcut to open configured electroválvula `4` through `8`.
 
 ```powershell
 Invoke-RestMethod -Method Post http://192.168.1.138/valves/8/open
@@ -510,7 +532,7 @@ Invoke-RestMethod -Method Post http://192.168.1.138/valves/8/open
 
 ### POST /valves/<id>/close
 
-Shortcut to close configured electroválvula `6`, `7`, or `8`.
+Shortcut to close configured electroválvula `4` through `8`.
 
 ```powershell
 Invoke-RestMethod -Method Post http://192.168.1.138/valves/8/close
@@ -533,8 +555,8 @@ The YF-DN32 flowmeter is wired to DI8. `GET /status` exposes:
 
 Opening EV8 starts a new flowmeter session. Closing EV8 stops it and freezes
 `last_session_l`. Repeating an open command while EV8 is already open does not
-reset the active session. EV6, EV7, and direct relay writes do not start or stop
-a flowmeter session.
+reset the active session. EV4, EV5, EV6, EV7, and direct relay writes do not
+start or stop a flowmeter session.
 
 ### POST /flowmeter/reset-session
 

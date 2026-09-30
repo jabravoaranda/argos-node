@@ -1,7 +1,7 @@
 #include "Config.h"
 
 #ifndef ARGOS_FIRMWARE_VERSION
-#define ARGOS_FIRMWARE_VERSION "0.1.0"
+#define ARGOS_FIRMWARE_VERSION "0.1.1"
 #endif
 
 #ifndef ARGOS_BOARD_NAME
